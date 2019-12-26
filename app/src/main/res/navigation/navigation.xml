@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation"
+    app:startDestination="@id/mainFragment">
+
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.e.tracker.MainFragment"
+        android:label="MainFragment" >
+        <action
+            android:id="@+id/action_mainFragment_to_newTrackFragment"
+            app:destination="@id/newTrackFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_trackListFragment"
+            app:destination="@id/trackListFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/newTrackFragment"
+        android:name="com.e.tracker.track.NewTrackFragment"
+        android:label="NewTrackFragment" >
+        <action
+            android:id="@+id/action_newTrackFragment_to_mainFragment"
+            app:destination="@id/mainFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popUpTo="@+id/mainFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/trackListFragment"
+        android:name="com.e.tracker.track.TrackListFragment"
+        android:label="fragment_track_list"
+        tools:layout="@layout/fragment_track_list" >
+        <action
+            android:id="@+id/action_trackListFragment_to_mainFragment"
+            app:destination="@id/mainFragment"
+            app:popUpTo="@+id/mainFragment" />
+    </fragment>
+</navigation>

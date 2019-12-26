@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#008577</color>
+    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorAccent">#D81B60</color>
+
+    <color name="color_main_button">#FFFFFF</color>
+
+    <color name="green_color">#388310</color>
+    <color name="white_text_color">#f0f0f0</color>
+
+    <color name="icon_not_selected">#555555</color>
+    <color name="icon_selected">#FFFFFF</color>
+
+    <color name="trackList_background">#0D47A1</color>
+    <color name="trackListItem_background">#AED581</color>
+
+    <!-- Color Schema -->
+    <color name="schema_one_blue_light">#00A3BF</color>
+    <color name="schema_one_yellow">#EBB000</color>
+    <color name="schema_one_blue">#007C91</color>
+    <color name="schema_one_dark">#003640</color>
+    <color name="schema_one_red">#F05800</color>
+</resources>

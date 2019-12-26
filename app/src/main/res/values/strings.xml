@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Tracker</string>
+    <string name="menu_help">Help</string>
+    <string name="track_name_hint">Name</string>
+    <string name="track_description_hint">Description</string>
+    <string name="track_location_hint">Location</string>
+    <string name="track_startCoords_hint">Start Coordinates</string>
+    <string name="track_latitude_hint">Latitude</string>
+    <string name="track_longitude_hint">Longitude</string>
+    <string name="track_button_submit">Submit</string>
+    <string name="map_toolbar_edit">Edit path</string>
+    <string name="map_toolbar_add">Add path point</string>
+</resources>
