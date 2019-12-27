@@ -46,12 +46,28 @@ class TrackObject {
     private fun updateTrack() {}
 
     /**
+     * Insert new track coordinates into DB
+     *
+     * @param geoPoint
+     */
+    suspend fun insertCoord( geoPoint: GeoPoint, position: Int? = coords.size ) {
+        var trackCoordModel = TrackCoordModel()
+
+        uiScope.launch {
+            withContext(Dispatchers.IO) {
+
+            }
+        }
+    }
+
+
+    /**
      * Add coord to end of path or at path point index
      *
      * @param geoPoint coordinates for path point
      * @param position position of coord in path,
      */
-    fun addCoord(geoPoint: GeoPoint, position: Int? = coords.size) : Boolean{
+    fun addCoord(geoPoint: GeoPoint, position: Int? = coords.size) : Boolean {
         var trackCoordModel = TrackCoordModel()
         trackCoordModel.latitude = geoPoint.latitude
         trackCoordModel.longitude = geoPoint.longitude
@@ -67,13 +83,14 @@ class TrackObject {
                 val result = coordsSource.insert(trackCoordModel)
                 println("insert result: $result")
                 if (result != -1L) {
-                    if (result > coords.size) {
+                    if (position > coords.size) {
                         coords.add(trackCoordModel)
                         coordsGpx.add(geoPoint)
 
                     } else {
-                        coords.add(result.toInt(), trackCoordModel)
-                        coordsGpx.add(result.toInt(), geoPoint)
+                        coords.add(position, trackCoordModel)
+                        coordsGpx.add(position, geoPoint)
+                        // update trackPosition's of points from position to end
                     }
 
                     if (result < coords.size) {
@@ -94,7 +111,7 @@ class TrackObject {
         }
 
         // if coords not added to end of path then update coords follwing of new coord
-        return true
+        return false
     }
 
     /**

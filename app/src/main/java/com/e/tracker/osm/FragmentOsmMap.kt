@@ -13,6 +13,8 @@ import androidx.appcompat.view.menu.MenuBuilder
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import com.e.tracker.R
 import com.e.tracker.databinding.FragmentOsmMapBinding
 import com.e.tracker.track.TrackObject
@@ -51,6 +53,8 @@ class FragmentOsmMap() : Fragment() {
     lateinit var trackObject: TrackObject
 
     private var path: Polyline = Polyline(map)
+    val pathM : MutableLiveData<Polyline> = MutableLiveData(path)
+
     private var pathEditEnabled = false
     private var pathPointRemoveEnabled = false
 
@@ -84,6 +88,8 @@ class FragmentOsmMap() : Fragment() {
         binding.map.controller.setZoom(15.0)
         //binding.map.controller.setCenter(GeoPoint(52.4908, 13.4186))
         binding.map.controller.setCenter(GeoPoint(trackObject.latitude, trackObject.longitude))
+
+        pathM.observe(this, Observer { newPathM -> path = pathM.value!! })
 
         // get tap location using MapEventsOverlay
         val mapEventsOverlay =  MapEventsOverlay( object : MapEventsReceiver {
@@ -129,12 +135,6 @@ class FragmentOsmMap() : Fragment() {
                             }
                         }
 
-//                        val result = trackObject.addCoord(geoPoint = p)
-//                        path.addPoint(p)
-//                        addTrackStartEndIcon()
-                            //update end point of path
-                        //}
-                        //trackObject.addCoord(p)
                         map.invalidate()
                         return true
                     }
