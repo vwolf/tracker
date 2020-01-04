@@ -22,7 +22,7 @@ interface TrackCoordDatabaseDao {
     @Query("SELECT * FROM trackcoord_table ORDER BY id DESC")
     fun getAllCoords(): LiveData<List<TrackCoordModel>>
 
-    @Query("SELECT * FROM trackcoord_table WHERE track == :id")
+    @Query("SELECT * FROM trackcoord_table WHERE track == :id ORDER BY trackPosition ASC")
     fun getCoordsForId(id: Long) : List<TrackCoordModel>
 
     @Update
@@ -30,4 +30,7 @@ interface TrackCoordDatabaseDao {
 
     @Query("UPDATE trackcoord_table SET trackPosition = :newTrackPosition WHERE track == :track AND trackPosition == :trackPosition ")
     fun updateCoordsTrackPosition(trackPosition: Int, newTrackPosition: Int, track: Long)
+
+    @Query("Update trackcoord_table SET trackPosition = :newTrackPosition WHERE id == :id")
+    fun updatePositionOfCoord(newTrackPosition: Int, id: Long) : Int
 }

@@ -46,18 +46,29 @@ class TrackObject {
     private fun updateTrack() {}
 
     /**
-     * Insert new track coordinates into DB
+     * Insert new track coordinates into DB,
      *
      * @param geoPoint
+     * @param position
      */
-    suspend fun insertCoord( geoPoint: GeoPoint, position: Int? = coords.size ) {
+    suspend fun insertCoord( geoPoint: GeoPoint, position: Int? = 0 ) {
         var trackCoordModel = TrackCoordModel()
+        trackCoordModel.latitude = geoPoint.latitude
+        trackCoordModel.longitude = geoPoint.longitude
+        trackCoordModel.track = id
+        var trackPosition = position
+        if (trackPosition == 0) {
+            trackPosition = coords.size + 1
+        }
+        trackCoordModel.trackPosition = trackPosition!!
 
         uiScope.launch {
             withContext(Dispatchers.IO) {
-
+                val result = coordsSource.insert(trackCoordModel)
             }
+
         }
+
     }
 
 
@@ -67,13 +78,18 @@ class TrackObject {
      * @param geoPoint coordinates for path point
      * @param position position of coord in path,
      */
-    fun addCoord(geoPoint: GeoPoint, position: Int? = coords.size) : Boolean {
+    fun addCoord(geoPoint: GeoPoint, position: Int? = 0, res: () -> Unit ) : Boolean {
+        println("addCoord at position $position")
         var trackCoordModel = TrackCoordModel()
         trackCoordModel.latitude = geoPoint.latitude
         trackCoordModel.longitude = geoPoint.longitude
         trackCoordModel.track = id
 
-        position ?: coords.size
+        // if no position value then add to end of pat
+        var position = position
+        if (position == 0) {
+            position = coords.size + 1
+        }
         trackCoordModel.trackPosition =  position!!
 
 
@@ -81,16 +97,35 @@ class TrackObject {
 
             withContext(Dispatchers.IO) {
                 val result = coordsSource.insert(trackCoordModel)
-                println("insert result: $result")
+                println("insert result: $result with position $position")
                 if (result != -1L) {
-                    if (position > coords.size) {
+                    trackCoordModel.id = result
+                    if (position > coords.size ) {
+                        // add at end of path
                         coords.add(trackCoordModel)
                         coordsGpx.add(geoPoint)
+                        //res()
 
                     } else {
-                        coords.add(position, trackCoordModel)
-                        coordsGpx.add(position, geoPoint)
+                        // add at position of path
+                        coords.add(position -1, trackCoordModel)
+                        coordsGpx.add(position -1, geoPoint)
                         // update trackPosition's of points from position to end
+
+                        for (i in position - 1..coords.size - 1) {
+                            // don't update added coord
+                            if (coords[i].id != result) {
+                                println("update coord.trackPosition ${coords[i].id} to ${i + 1}")
+                                // any mixup in trackPostions?
+                                if ( coords[i].trackPosition == i) {
+                                    coordsSource.updatePositionOfCoord( i + 1, coords[i].id)
+                                } else {
+                                    //coordsSource.updateCoordsTrackPosition(coords[i].trackPosition, i + 1, coords[i].id)
+                                    coordsSource.updatePositionOfCoord(i + 1, coords[i].id)
+                                }
+                            }
+                        }
+                        res()
                     }
 
                     if (result < coords.size) {
@@ -115,11 +150,13 @@ class TrackObject {
     }
 
     /**
+     * Insert coordinates into TrackCoord table.
+     * Lists coords and coordsGpx must already be updated
      *
      * @param trackCoordModel
      * @return Long id of insert TrackCoord
      */
-    private suspend fun insertCoord(trackCoordModel: TrackCoordModel)  {
+    private suspend fun insertCoord(trackCoordModel: TrackCoordModel, position: Int?)  {
 
         withContext(Dispatchers.IO) {
             val result = coordsSource.insert(trackCoordModel)
@@ -149,8 +186,9 @@ class TrackObject {
     }
 
 
-    fun deleteCoord(id: Long) {
-        val trackCoordModel = coords.first { it.id == id }
+    fun deleteCoord(idx: Int) {
+        val pathPointIdx = coords[idx].id
+        val trackCoordModel = coords.first { it.id == pathPointIdx }
         if( trackCoordModel is TrackCoordModel ) {
             uiScope.launch { deleteCoordInDB(trackCoordModel) }
         }

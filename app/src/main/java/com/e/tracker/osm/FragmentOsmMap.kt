@@ -66,6 +66,7 @@ class FragmentOsmMap() : Fragment() {
 
     // Marker
     private var selectedMarkers  = mutableListOf<Marker>()
+    private var selectedMarkersPathPosition = mutableListOf<Int>()
     private var activeMarkerUid : String? = null
     private var activeMarker: Marker? = null
 
@@ -103,35 +104,38 @@ class FragmentOsmMap() : Fragment() {
 //                        item.unSetFocusedItem()
 
                         //if( pathEditEnabled ) {
-                        when (activeMarkerUid) {
-                            "StartOfPath" -> {
-
-                            }
-
-                            "EndOfPath" -> {
-                                trackObject.addCoord(geoPoint = p)
-                                path.addPoint(p)
-
-                                //map.overlayManager.overlays().first { it. }
-                            }
-
-                            "track_end" -> {
-                                trackObject.addCoord(geoPoint = p)
-                                path.addPoint(p)
-                                activeMarker?.position = p
-                            }
-                        }
+//                        when (activeMarkerUid) {
+//                            "StartOfPath" -> {
+//
+//                            }
+//
+//                            "EndOfPath" -> {
+//                                trackObject.addCoord(geoPoint = p)
+//                                path.addPoint(p)
+//
+//                                //map.overlayManager.overlays().first { it. }
+//                            }
+//
+//                            "track_end" -> {
+//                                trackObject.addCoord(geoPoint = p)
+//                                path.addPoint(p)
+//                                activeMarker?.position = p
+//                            }
+//                        }
 
                         when (activeMarker?.id) {
                             "track_end" -> {
-                                trackObject.addCoord(geoPoint = p)
+                                trackObject.addCoord(geoPoint = p, res = { updatePath(true) } )
                                 path.addPoint(p)
                                 activeMarker?.position = p
                             }
                             "track_start" -> {
-                                trackObject.addCoord(geoPoint = p, position = 0)
-                                path.setPoints(trackObject.coordsGpx)
+                                println("Add at track_start coordsGpx.size: ${trackObject.coordsGpx.size}")
+                                trackObject.addCoord(geoPoint = p, position = 1, res = { updatePath(true) })
+                                println("Add at track_start coordsGpx.size: ${trackObject.coordsGpx.size}")
+                                //path.setPoints(trackObject.coordsGpx)
                                 activeMarker?.position = p
+
                             }
                         }
 
@@ -341,6 +345,12 @@ class FragmentOsmMap() : Fragment() {
 
     }
 
+    fun updatePath(status: Boolean) {
+        println("updatePath: $status")
+        path.setPoints(trackObject.coordsGpx)
+    }
+
+
     /**
      * First version for adding a path to map
      * Add onClickListener to path (onClickOnPath)
@@ -434,11 +444,14 @@ class FragmentOsmMap() : Fragment() {
 
         if (segmentIndex != null) {
             var pointsToMark = mutableListOf<GeoPoint>()
-            val firstPointIdx = segmentIndex -1
+            var pointsIdx = mutableListOf<Int>()
+            val firstPointIdx = segmentIndex - 1
             val secondPointIdx = segmentIndex
             pointsToMark.add(GeoPoint(polyline.points[firstPointIdx]))
             pointsToMark.add(GeoPoint(polyline.points[secondPointIdx]))
-            addIconToPoints(pointsToMark)
+            pointsIdx.add(firstPointIdx)
+            pointsIdx.add(segmentIndex)
+            addIconToPoints(pointsToMark, pointsIdx)
         }
 //        val pathPointIndex = polyline.points.indexOfFirst { it == pathPoint }
 
@@ -510,25 +523,28 @@ class FragmentOsmMap() : Fragment() {
      *
      * @param marker tapped marker, must be on overlay
      */
-    fun clickOnMarker(marker: Marker) : Boolean {
+    fun clickOnMarker(marker: Marker, idx: Int) : Boolean {
 
         if (selectedMarkers.contains(marker)) {
             println("clickOnMarke do something")
 
             marker.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_brightness_1_black_12dp)
             selectedMarkers.remove(marker)
+            selectedMarkersPathPosition.remove(idx)
         } else {
             // only one marker can be selected
             if (selectedMarkers.isNotEmpty()) {
                 for ( selectedMarker in selectedMarkers) {
                     selectedMarker.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_brightness_1_black_12dp)
                     selectedMarkers.remove(selectedMarker)
+                    selectedMarkersPathPosition.remove(idx)
                 }
                 map_toolbar_btn_removePoint.alpha = 0.5f
                 map_toolbar_btn_removePoint.isEnabled = false
             }
 
             selectedMarkers.add(marker)
+            selectedMarkersPathPosition.add(idx)
             marker.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_brightness_1_orange_12dp)
 
             // show toolbar for selected marker
@@ -548,7 +564,7 @@ class FragmentOsmMap() : Fragment() {
      *
      * @param points
      */
-    fun addIconToPoints(points: List<GeoPoint>) {
+    fun addIconToPoints(points: List<GeoPoint>, pointIdx: List<Int>) {
 
         //map.overlays[0].
         map.overlayManager.removeAll { it is Marker }
@@ -557,7 +573,7 @@ class FragmentOsmMap() : Fragment() {
 //        println("icon.intrinsicWidth: ${i.intrinsicWidth}")
 //        i?.setBounds(0, 0, (i.intrinsicWidth * 0.5).toInt(), (i.intrinsicHeight * 0.5).toInt())
 
-        for ( p in points ) {
+        for ( (index, p) in points.withIndex() ) {
             val marker = Marker(map)
             val i = ContextCompat.getDrawable(requireContext(), R.drawable.ic_brightness_1_black_12dp)
             marker.id = "marker_selected"
@@ -571,7 +587,7 @@ class FragmentOsmMap() : Fragment() {
 
             marker.setOnMarkerClickListener { marker: Marker, mapView: MapView ->
                 println("Click on Marker")
-                clickOnMarker(marker)
+                clickOnMarker(marker, index)
                 //true
             }
 
@@ -603,8 +619,13 @@ class FragmentOsmMap() : Fragment() {
 
         println("Remove path point")
 
-        var markerGeoPoint = selectedMarkers[0].position
-        trackObject.deleteCoord((markerGeoPoint))
+//        var markerGeoPoint = selectedMarkers[0].position
+//        trackObject.deleteCoord((markerGeoPoint))
+
+        if( selectedMarkers.isNotEmpty()) {
+            val markerPosition = selectedMarkersPathPosition[0]
+            trackObject.deleteCoord(markerPosition)
+        }
 
         map.invalidate()
         // val pathIndex = path.points.indexOfFirst { it == markerGeoPoint }
