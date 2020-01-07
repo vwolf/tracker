@@ -7,12 +7,12 @@ import androidx.room.PrimaryKey
 import java.text.FieldPosition
 import java.util.*
 
-@Entity(tableName = "trackcoord_table",
-    foreignKeys = arrayOf(
-        ForeignKey( entity = TrackModel::class,
-            parentColumns =  arrayOf("id"),
-            childColumns = arrayOf("track"))
-    )
+@Entity(tableName = "trackcoord_table"
+//    foreignKeys = arrayOf(
+//        ForeignKey( entity = TrackModel::class,
+//            parentColumns =  arrayOf("id"),
+//            childColumns = arrayOf("track"))
+//    )
 )
 
 data class TrackCoordModel (

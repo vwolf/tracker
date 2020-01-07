@@ -17,6 +17,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.e.tracker.R
 import com.e.tracker.databinding.FragmentOsmMapBinding
+import com.e.tracker.track.TrackActionType
 import com.e.tracker.track.TrackObject
 import com.e.tracker.track.TrackSourceType
 import kotlinx.android.synthetic.main.fragment_osm_map.*
@@ -125,15 +126,13 @@ class FragmentOsmMap() : Fragment() {
 
                         when (activeMarker?.id) {
                             "track_end" -> {
-                                trackObject.addCoord(geoPoint = p, res = { updatePath(true) } )
+                                trackObject.addCoord(geoPoint = p, res = { updatePath(TrackActionType.AddAtEnd) } )
                                 path.addPoint(p)
                                 activeMarker?.position = p
                             }
                             "track_start" -> {
                                 println("Add at track_start coordsGpx.size: ${trackObject.coordsGpx.size}")
-                                trackObject.addCoord(geoPoint = p, position = 1, res = { updatePath(true) })
-                                println("Add at track_start coordsGpx.size: ${trackObject.coordsGpx.size}")
-                                //path.setPoints(trackObject.coordsGpx)
+                                trackObject.addCoord(geoPoint = p, position = 1, res = { updatePath(TrackActionType.AddAtStart) })
                                 activeMarker?.position = p
 
                             }
@@ -216,7 +215,6 @@ class FragmentOsmMap() : Fragment() {
         (activity as? AppCompatActivity)?.supportActionBar?.title = trackObject.trackName
 
         addPathAsPolyline()
-        //addTrackStartEndIcon()
         trackStartMarker()
         trackEndMarker()
         //addIconToPoints(trackObject.coordsGpx)
@@ -271,8 +269,8 @@ class FragmentOsmMap() : Fragment() {
 
     private fun trackStartMarker() {
 
-        val mIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_add_location_black_24dp)
-        mIcon?.setTint(ContextCompat.getColor(requireContext(), R.color.schema_one_blue_light))
+        val mIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_add_location_black_24dp)?.mutate()
+        mIcon?.setTint(ContextCompat.getColor(requireContext(), R.color.schema_one_green))
 
         var startMarker = Marker(map)
         startMarker.position = trackObject.coordsGpx.first()
@@ -297,7 +295,7 @@ class FragmentOsmMap() : Fragment() {
 
     private fun trackEndMarker() {
 
-        val mIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_add_location_black_24dp)
+        val mIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_add_location_black_24dp)?.mutate()
         mIcon?.setTint(ContextCompat.getColor(requireContext(), R.color.schema_one_red))
 
         var endMarker = Marker(map)
@@ -320,36 +318,26 @@ class FragmentOsmMap() : Fragment() {
 
     }
 
-//    val onMarkerTapListener: ( Marker) -> Marker.OnMarkerClickListener = {
-//        when (it.id) {
-//            "track_start" -> {
-//                activeMarker = it
-//            }
-//            "track_end" -> {}
-//        }
-//        it.
-//    }
-
-//    fun onMarkerTapListener(marker: Marker) : Marker.OnMarkerClickListener {
-//       when (marker.id) {
-//           "track_start" -> {
-//               activeMarker = marker
-//           }
-//           "track_end" -> {}
-//       }
-//       marker.id
-//    }
-
 
     private fun updateStartIcon() {
 
     }
 
-    fun updatePath(status: Boolean) {
+
+    fun updatePath(status: TrackActionType) {
         println("updatePath: $status")
+        when(status) {
+            TrackActionType.AddAtStart -> {}
+            TrackActionType.AddAtEnd -> {}
+            TrackActionType.RemoveSelected -> {
+                // update position of marker?
+                // move marker of deleted coord to next one of path
+                // set state of delete button in statusbar
+            }
+        }
+
         path.setPoints(trackObject.coordsGpx)
     }
-
 
     /**
      * First version for adding a path to map
@@ -624,10 +612,10 @@ class FragmentOsmMap() : Fragment() {
 
         if( selectedMarkers.isNotEmpty()) {
             val markerPosition = selectedMarkersPathPosition[0]
-            trackObject.deleteCoord(markerPosition)
+            trackObject.deleteCoord(markerPosition, res = { updatePath(TrackActionType.RemoveSelected)})
         }
 
-        map.invalidate()
+        //map.invalidate()
         // val pathIndex = path.points.indexOfFirst { it == markerGeoPoint }
         // get marker position in path point list
 

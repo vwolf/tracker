@@ -37,5 +37,11 @@
             android:id="@+id/action_trackListFragment_to_mainFragment"
             app:destination="@id/mainFragment"
             app:popUpTo="@+id/mainFragment" />
+        <action
+            android:id="@+id/action_trackListFragment_to_newTrackFragment"
+            app:destination="@id/newTrackFragment"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@+id/trackListFragment" />
     </fragment>
 </navigation>

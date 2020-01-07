@@ -16,6 +16,8 @@ import com.e.tracker.database.TrackModel
 import com.e.tracker.databinding.FragmentNewTrackBinding
 import com.e.tracker.osm.OsmActivity
 import kotlinx.android.synthetic.main.fragment_new_track.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import org.json.JSONObject
 
 const val GET_LOCATION_ADDRESS = 1
@@ -26,7 +28,23 @@ const val GET_LOCATION_ADDRESS = 1
  */
 class NewTrackFragment : Fragment() {
 
-    var trackType = ObservableField<String>()
+    private var trackType = ObservableField<String>()
+    private var trackId = 0L
+    private var trackLoaded = TrackModel()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val track = arguments?.getParcelable<TrackParcel>("track")
+       // if (track?.trackId?.equals(0)) {}
+        if (track != null) {
+            if (track.trackId != 0L) {
+                trackId = track.trackId
+                println("Edit track with id $trackId")
+            }
+        }
+
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,32 +67,72 @@ class NewTrackFragment : Fragment() {
 
         binding.newTrackViewModel = trackViewModel
 
-        // buttons to select type, set default value and bind to layout
-        trackType.set("walking")
-        binding.trackType = trackType
-
         // handle type buttons events
-        binding.buttonWalk.setOnClickListener{  trackType.set("walking") }
+        binding.buttonWalk.setOnClickListener { trackType.set("walking") }
         binding.buttonBike.setOnClickListener { trackType.set("biking") }
 
+        if (trackId > 0L) {
+            GlobalScope.async {
+                val loadedTrack = trackViewModel.getTrackWithId(trackId)
+                if (loadedTrack is TrackModel) {
+                    trackLoaded = loadedTrack
+
+                    // Submit button
+                    binding.trackButtonSubmit.setText("Edit")
+                    binding.trackButtonSubmit.setOnClickListener {
+                        editTrack(binding)
+                        view?.findNavController()?.navigate(R.id.action_newTrackFragment_to_mainFragment)
+                    }
+
+                    track_name.setText(trackLoaded.trackName)
+                    track_description.setText(trackLoaded.trackDescription)
+                    track_location.setText(trackLoaded.location)
+                    track_latitude.setText(trackLoaded.latitude.toString())
+                    track_longitude.setText(trackLoaded.longitude.toString())
+
+                    trackType.set("walking")
+                    binding.trackType = trackType
+                }
+            }
+        } else {
+            // buttons to select type, set default value and bind to layout
+            trackType.set("walking")
+            binding.trackType = trackType
+
+            // Submit button
+            binding.trackButtonSubmit.setOnClickListener {
+                submitNewTrack(binding)
+                view?.findNavController()?.navigate(R.id.action_newTrackFragment_to_mainFragment)
+            }
+
+        }
+
+        // for submit and edit track
         // Map button - open map and user can select point
         binding.buttonMap.setOnClickListener {
             val intent = Intent(requireContext(), OsmActivity::class.java)
             startActivityForResult(intent, GET_LOCATION_ADDRESS)
         }
 
-
-        // Submit button
-        binding.trackButtonSubmit.setOnClickListener {
-            submitNewTrack(binding)
-
-            view?.findNavController()?.navigate(R.id.action_newTrackFragment_to_mainFragment)
-        }
-
         setHasOptionsMenu(true)
 
         return binding.root
     }
+
+    // set all loaded values again???
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        if (trackLoaded.id > 0L) {
+            track_name.setText(trackLoaded.trackName)
+            track_description.setText(trackLoaded.trackDescription)
+            track_location.setText(trackLoaded.location)
+            track_latitude.setText(trackLoaded.latitude.toString())
+            track_longitude.setText(trackLoaded.longitude.toString())
+
+            trackType.set(trackLoaded.type)
+
+        }
+    }
+
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
 
@@ -99,11 +157,26 @@ class NewTrackFragment : Fragment() {
         newTrack.latitude = track_latitude.text.toString().toDouble()
         newTrack.longitude = track_longitude.text.toString().toDouble()
 
-        val stratCoordinates = JSONObject().put("latitude" , track_latitude.text)
-        stratCoordinates.put("longitude", track_longitude.text)
-        newTrack.startCoordinates = stratCoordinates.toString()
+        val startCoordinates = JSONObject().put("latitude" , track_latitude.text)
+        startCoordinates.put("longitude", track_longitude.text)
+        newTrack.startCoordinates = startCoordinates.toString()
 
         binding.newTrackViewModel?.insertNewTrack(newTrack)
+    }
+
+
+    private fun editTrack(binding: FragmentNewTrackBinding) {
+        trackLoaded.trackName = track_name.text.toString()
+        trackLoaded.trackDescription = track_description.text.toString()
+        trackLoaded.location = track_location.text.toString()
+        trackLoaded.latitude = track_latitude.text.toString().toDouble()
+        trackLoaded.longitude = track_longitude.text.toString().toDouble()
+
+        val startCoordinates = JSONObject().put("latitude" , track_latitude.text)
+        startCoordinates.put("longitude", track_longitude.text)
+        trackLoaded.startCoordinates = startCoordinates.toString()
+
+        binding.newTrackViewModel?.updateTrack(trackLoaded)
     }
 
 

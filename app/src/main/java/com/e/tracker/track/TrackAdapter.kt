@@ -8,16 +8,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.e.tracker.R
 import com.e.tracker.database.TrackModel
 import com.e.tracker.databinding.TrackListItemViewBinding
-import com.e.tracker.generated.callback.OnClickListener
 
 
-class TrackAdapter(val clickListener: TrackListener, val editIconClickListener: (TrackModel) -> Unit) : RecyclerView.Adapter<TrackAdapter.ViewHolder>() {
 
-    //private var editIconClickListener: ((TrackModel) -> Unit)
+class TrackAdapter(
+    val clickListener: TrackListener,
+    val editIconClickListener: (TrackModel) -> Unit) : RecyclerView.Adapter<TrackAdapter.ViewHolder>() {
 
-//    fun setOnEditIconClickListener(listener: (TrackModel) -> Unit) {
-//        this.editIconClickListener = listener
-//    }
 
 
     var data = listOf<TrackModel>()

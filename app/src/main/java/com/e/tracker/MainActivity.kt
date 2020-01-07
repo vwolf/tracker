@@ -6,12 +6,16 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.DialogFragment
 import com.e.tracker.Support.*
 import com.e.tracker.Support.Permissions
 import com.e.tracker.databinding.ActivityMainBinding
+import com.e.tracker.track.TrackEditDialogFragment
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(){
+    // , TrackEditDialogFragment.TrackEditDialogListener
+    //override fun onDialogCancelClick(dialog: DialogFragment) {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

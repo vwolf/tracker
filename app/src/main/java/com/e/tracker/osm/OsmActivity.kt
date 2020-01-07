@@ -40,9 +40,7 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
 
-
         super.onCreate(savedInstanceState)
-
 
         setContentView(R.layout.activity_osm)
 

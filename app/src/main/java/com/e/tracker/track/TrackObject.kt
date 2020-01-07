@@ -14,7 +14,6 @@ import kotlin.properties.Delegates
  */
 class TrackObject {
 
-
     private var osmActivityJob = Job()
     private var uiScope = CoroutineScope(Dispatchers.Main + osmActivityJob)
 
@@ -120,7 +119,6 @@ class TrackObject {
                                 if ( coords[i].trackPosition == i) {
                                     coordsSource.updatePositionOfCoord( i + 1, coords[i].id)
                                 } else {
-                                    //coordsSource.updateCoordsTrackPosition(coords[i].trackPosition, i + 1, coords[i].id)
                                     coordsSource.updatePositionOfCoord(i + 1, coords[i].id)
                                 }
                             }
@@ -133,16 +131,6 @@ class TrackObject {
                     }
                 }
             }
-
-//            val result = insertCoord(trackCoordModel)
-//            if (result != -1L) {
-//                // added at end or
-//                coords.add(result.toInt(), trackCoordModel)
-//
-//                if (result < coords.size) {
-//                    uiScope.launch { updateCoords(1, result.toInt(), coords.size) }
-//                }
-//            }
         }
 
         // if coords not added to end of path then update coords follwing of new coord
@@ -185,12 +173,15 @@ class TrackObject {
         }
     }
 
-
-    fun deleteCoord(idx: Int) {
+    /**
+     *
+     * @param idx position index of trackCoord in path
+     */
+    fun deleteCoord(idx: Int, res: () -> Unit) {
         val pathPointIdx = coords[idx].id
         val trackCoordModel = coords.first { it.id == pathPointIdx }
         if( trackCoordModel is TrackCoordModel ) {
-            uiScope.launch { deleteCoordInDB(trackCoordModel) }
+            uiScope.launch { deleteCoordInDB(trackCoordModel, res) }
         }
     }
 
@@ -201,20 +192,43 @@ class TrackObject {
     /**
      * Find TrackCoordModel with gpoPoint coordinates and remove from DB
      */
-    fun deleteCoord(geoPoint: GeoPoint) {
+    fun deleteCoord(geoPoint: GeoPoint, res: () -> Unit) {
         val coordIndex = coordsGpx.indexOfFirst { it == geoPoint }
         if ( coordIndex >= 0 ) {
-            uiScope.launch { deleteCoordInDB(coords[coordIndex]) }
+            uiScope.launch { deleteCoordInDB(coords[coordIndex], res) }
 
             coords.removeAt(coordIndex)
             coordsGpx.removeAt(coordIndex)
         }
     }
 
-
-    private suspend fun deleteCoordInDB(trackCoordModel: TrackCoordModel) {
+    /**
+     * This is function which try's to delete the trackCoord from DB table.
+     * Update coords and coordsGpx list
+     * Update the trackPosition's
+     *
+     * @param trackCoordModel
+     */
+    private suspend fun deleteCoordInDB(trackCoordModel: TrackCoordModel, res: () -> Unit) {
+        println("deleteCoordInDB trackPosition: ${trackCoordModel.trackPosition}")
         withContext(Dispatchers.IO) {
-            coordsSource.delete(trackCoordModel)
+            val trackCoordIdx = coords.indexOf(trackCoordModel)
+            val result = coordsSource.delete(trackCoordModel)
+            println("deleteCoordInDB with result: $result")
+            if (result > 0) {
+                var trackPosition = trackCoordModel.trackPosition
+                // update trackPosition if deleted coord was not the last in path
+                if (trackCoordIdx < coords.size - 1) {
+                    for (i in (trackCoordIdx)..(coords.size - 1)) {
+                        val newPosition = coords[i].trackPosition - 1
+                        coordsSource.updatePositionOfCoord(newPosition, coords[i].id)
+                    }
+                }
+                coords.removeAt(trackCoordIdx)
+                coordsGpx.removeAt(trackCoordIdx)
+
+                res()
+            }
         }
     }
 
@@ -237,4 +251,10 @@ enum class TrackSourceType {
     FILE,
     DATABASE,
     NEW;
+}
+
+enum class TrackActionType {
+    AddAtStart,
+    AddAtEnd,
+    RemoveSelected,
 }

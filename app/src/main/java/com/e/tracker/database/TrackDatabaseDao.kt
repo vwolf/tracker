@@ -1,10 +1,7 @@
 package com.e.tracker.database
 
 import androidx.lifecycle.LiveData
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Update
+import androidx.room.*
 
 @Dao
 interface TrackDatabaseDao {
@@ -13,7 +10,7 @@ interface TrackDatabaseDao {
     fun insert(track: TrackModel) : Long
 
     @Update
-    fun update(track: TrackModel)
+    fun update(track: TrackModel) : Int
 
     @Query("SELECT * FROM track_table WHERE id = :key")
     fun get(key: Long): TrackModel?
@@ -23,4 +20,10 @@ interface TrackDatabaseDao {
 
     @Query("SELECT * FROM track_table ORDER BY id DESC LIMIT 1")
     fun getLast() : TrackModel?
+
+    @Delete
+    fun delete(trackModel: TrackModel)
+
+    @Query("DELETE FROM track_table WHERE id = :id")
+    fun deleteTrackWithId(id: Long)
 }

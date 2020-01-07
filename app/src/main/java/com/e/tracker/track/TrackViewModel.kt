@@ -12,6 +12,7 @@ import com.e.tracker.database.TrackModel
 import com.e.tracker.databinding.FragmentNewTrackBinding
 import com.e.tracker.osm.OsmActivity
 import kotlinx.coroutines.*
+import org.json.JSONObject
 
 
 /**
@@ -34,7 +35,6 @@ class TrackViewModel (
     private lateinit var binding: FragmentNewTrackBinding
 
     var tracks = database.getAllTracks()
-
     var mergedTracks = mutableListOf<TrackModel>()
 
 
@@ -62,17 +62,50 @@ class TrackViewModel (
     /**
      * Read track from table
      */
-    private suspend fun get(id: Long) : TrackModel? {
-        withContext(Dispatchers.IO) {
+    private suspend fun getTrack(id: Long) : TrackModel? {
+        return withContext(Dispatchers.IO) {
             val aModel = database.get(id)
+            //aModel?.source = "db"
             aModel
         }
-
-        return TrackModel()
     }
 
+    /**
+     * Update a track
+     * When updating a track, update tracks start coords
+     *
+     * @param track
+     */
+    private suspend fun update(track: TrackModel) {
+      withContext(Dispatchers.IO) {
+          val result = database.update(track)
+          if (result > 0L) {
+              var startCoord = coordSource.getCoordForTrackAtPosition(track.id, 1)
+              if (startCoord is TrackCoordModel) {
+                  startCoord.latitude = track.latitude
+                  startCoord.longitude = track.longitude
+              }
+          }
+      }
+    }
 
-    private suspend fun update() {}
+    private suspend fun deleteTrack(id: Long) {
+        withContext(Dispatchers.IO) {
+            val track = mergedTracks.first { it.id == id }
+            val result = database.delete(track)
+            mergedTracks.remove(track)
+
+            if (result is Unit) {
+                // remove coord belonging to deleted track
+                val trackCoords = coordSource.getCoordsForId(id)
+                if (trackCoords.isNotEmpty()) {
+                    for (c in trackCoords) {
+                        coordSource.delete(c)
+                    }
+                }
+            }
+        }
+    }
 
 
     fun insertNewTrack(newTrack: TrackModel) {
@@ -80,9 +113,34 @@ class TrackViewModel (
     }
 
 
-    fun addData( data: List<TrackModel>) {
-        mergedTracks.addAll(data)
+    fun updateTrack(track: TrackModel) {
+        uiScope.launch { update(track) }
     }
+
+
+    suspend fun getTrackWithId(id: Long) : TrackModel? {
+        return withContext(Dispatchers.IO) {
+            val aModel = database.get(id)
+            //aModel?.source = "db"
+            aModel
+        }
+    }
+
+    fun deleteTrackWithId(id: Long) {
+        uiScope.launch { deleteTrack(id) }
+    }
+
+
+    fun addData( data: List<TrackModel>) {
+        for (d in data) {
+            if ( !mergedTracks.contains(d) ) {
+                mergedTracks.add(d)
+            }
+        }
+        //mergedTracks.addAll(data)
+    }
+
+
 
 
     /**
@@ -99,7 +157,21 @@ class TrackViewModel (
     }
 
 
+    /**
+     * Touch on edit icon on track item list view
+     * Display choice depending on track type (file or db)
+     *
+     * @param track
+     */
     fun onTrackEditIconClicked(track: TrackModel) {
         println("onTrackEditIconClicked ${track.trackName}")
+//        if (track.id > 0) {
+//            val dialogFragment = TrackEditDialogFragment("Select Location", "db")
+//            //dialogFragment.show(this.fragmentManager!!, "myTag")
+//
+//        } else {
+//
+//        }
+
     }
 }

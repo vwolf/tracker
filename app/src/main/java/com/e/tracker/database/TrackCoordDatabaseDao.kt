@@ -17,7 +17,7 @@ interface TrackCoordDatabaseDao {
     fun update(trackCoord: TrackCoordModel)
 
     @Delete
-    fun delete(trackCoord: TrackCoordModel)
+    fun delete(trackCoord: TrackCoordModel) : Int
 
     @Query("SELECT * FROM trackcoord_table ORDER BY id DESC")
     fun getAllCoords(): LiveData<List<TrackCoordModel>>
@@ -33,4 +33,7 @@ interface TrackCoordDatabaseDao {
 
     @Query("Update trackcoord_table SET trackPosition = :newTrackPosition WHERE id == :id")
     fun updatePositionOfCoord(newTrackPosition: Int, id: Long) : Int
+
+    @Query("SELECT * FROM trackcoord_table WHERE track == :track AND trackPosition == :trackPosition")
+    fun getCoordForTrackAtPosition(track: Long, trackPosition: Int) : TrackCoordModel
 }
