@@ -1,13 +1,11 @@
 package com.e.tracker.track
 
 import android.content.Intent
-import android.database.DatabaseUtils
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.*
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.databinding.DataBindingUtil
-import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -39,6 +37,8 @@ class TrackListFragment : Fragment(), TrackEditDialogFragment.TrackEditDialogLis
     // put filepath's to external storage locations into gpxFilePaths to be used later
     // do it later?
     private var gpxFilePaths = listOf<File>()
+    private var gpxFilePathMap = mutableMapOf<String, String>()
+
     private val gpxParser : GPXParser = GPXParser()
 
     private lateinit var viewModel: TrackViewModel
@@ -152,7 +152,7 @@ class TrackListFragment : Fragment(), TrackEditDialogFragment.TrackEditDialogLis
 
             //aTrack.source = "file"
             trackDataList.add(aTrack)
-
+            gpxFilePathMap[aTrack.trackName] = t.absolutePath
         }
 
         viewModel.addData(trackDataList)
@@ -176,8 +176,16 @@ class TrackListFragment : Fragment(), TrackEditDialogFragment.TrackEditDialogLis
     private fun showMap(clickedTrack: TrackModel) {
 
         val newBundle = Bundle()
-        newBundle.putString("TYPE", "database")
-        newBundle.putLong("ID", clickedTrack.id)
+        if(clickedTrack.id > 0) {
+            newBundle.putString("TYPE", "database")
+            newBundle.putLong("ID", clickedTrack.id)
+        } else {
+            newBundle.putString("TYPE", "file")
+            newBundle.putLong("ID", clickedTrack.id)
+            newBundle.putString("TRACKNAME", clickedTrack.trackName)
+            newBundle.putString("PATH", gpxFilePathMap[clickedTrack.trackName])
+        }
+
 
         val intent = Intent(requireContext(), OsmActivity::class.java)
         intent.putExtras(newBundle)

@@ -57,7 +57,7 @@ class FragmentOsmMap() : Fragment() {
     val pathM : MutableLiveData<Polyline> = MutableLiveData(path)
 
     private var pathEditEnabled = false
-    private var pathPointRemoveEnabled = false
+    //private var pathPointRemoveEnabled = false
 
     var projectedPoints: LongArray = longArrayOf()
     private val projectedCenter = PointL()
@@ -91,7 +91,7 @@ class FragmentOsmMap() : Fragment() {
         //binding.map.controller.setCenter(GeoPoint(52.4908, 13.4186))
         binding.map.controller.setCenter(GeoPoint(trackObject.latitude, trackObject.longitude))
 
-        pathM.observe(this, Observer { newPathM -> path = pathM.value!! })
+        pathM.observe(this, Observer {  path = pathM.value!! })
 
         // get tap location using MapEventsOverlay
         val mapEventsOverlay =  MapEventsOverlay( object : MapEventsReceiver {
@@ -155,32 +155,38 @@ class FragmentOsmMap() : Fragment() {
             }
         } )
 
+        //
         binding.map.overlays.add(mapEventsOverlay)
+        //}
+
         setHasOptionsMenu(true)
 
-        binding.mapToolbarBtnEdit.alpha = 0.5f
-        binding.mapToolbarBtnAddPoint.alpha = 0.5f
-        binding.mapToolbarBtnAddPoint.isEnabled = false
-        binding.mapToolbarBtnRemovePoint.alpha = 0.5f
-        binding.mapToolbarBtnRemovePoint.isEnabled = false
-        binding.mapToolbarBtnMovePoint.alpha = 0.5f
+        if (trackObject.trackSourceType == TrackSourceType.FILE) {
+            binding.mapToolbar.visibility = View.INVISIBLE
+        } else {
+            binding.mapToolbarBtnEdit.alpha = 0.5f
+            binding.mapToolbarBtnAddPoint.alpha = 0.5f
+            binding.mapToolbarBtnAddPoint.isEnabled = false
+            binding.mapToolbarBtnRemovePoint.alpha = 0.5f
+            binding.mapToolbarBtnRemovePoint.isEnabled = false
+            binding.mapToolbarBtnMovePoint.alpha = 0.5f
 
-        binding.mapToolbarBtnEdit.setOnClickListener {  view ->
-            onEditButton(binding.mapToolbarBtnEdit)
-        }
+            binding.mapToolbarBtnEdit.setOnClickListener {
+                onEditButton(binding.mapToolbarBtnEdit)
+            }
 
-        binding.mapToolbarBtnAddPoint.setOnClickListener{
+            binding.mapToolbarBtnAddPoint.setOnClickListener {
 
-        }
+            }
+
+            binding.mapToolbarBtnRemovePoint.setOnClickListener {
+                onRemoveButton(binding.mapToolbarBtnRemovePoint)
+            }
 
 
-        binding.mapToolbarBtnRemovePoint.setOnClickListener {
-            onRemoveButton(binding.mapToolbarBtnRemovePoint)
-        }
+            binding.mapToolbarBtnMovePoint.setOnClickListener {
 
-
-        binding.mapToolbarBtnMovePoint.setOnClickListener {
-
+            }
         }
 
         return binding.root
@@ -188,6 +194,9 @@ class FragmentOsmMap() : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         //addPolyline()
+        if (trackObject.trackSourceType == TrackSourceType.FILE) {
+            updateMap()
+        }
     }
 
     override fun onPause() {
@@ -766,7 +775,7 @@ class FragmentOsmMap() : Fragment() {
 
         computeProjected(pProjection)
         val pixel: Point = pProjection.toPixels(pPoint, null)
-        val offset: PointL = PointL()
+        val offset = PointL()
         getBestOffset(pProjection, offset)
         clipAndStore(pProjection, offset, pClosePath, true, null)
         val mapSize = TileSystem.MapSize(pProjection.zoomLevel)

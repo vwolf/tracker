@@ -1,7 +1,5 @@
 package com.e.tracker.xml.gpx
 
-
-import android.os.Build
 import android.util.Xml
 import com.e.tracker.xml.gpx.domain.Author
 import com.e.tracker.xml.gpx.domain.Bounds
@@ -17,12 +15,10 @@ import com.e.tracker.xml.gpx.domain.Track
 import com.e.tracker.xml.gpx.domain.TrackPoint
 import com.e.tracker.xml.gpx.domain.TrackSegment
 import com.e.tracker.xml.gpx.domain.WayPoint
-import java.time.LocalDateTime
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import java.io.IOException
 import java.io.InputStream
-import java.text.SimpleDateFormat
 import java.util.*
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat

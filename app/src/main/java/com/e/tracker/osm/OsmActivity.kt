@@ -9,15 +9,20 @@ import android.os.Bundle
 import android.os.StrictMode
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.e.tracker.R
 import com.e.tracker.Support.OsmMapType
 import com.e.tracker.database.*
 import com.e.tracker.track.TrackObject
 import com.e.tracker.track.TrackSourceType
+import com.e.tracker.xml.gpx.GPXParser
+import com.e.tracker.xml.gpx.domain.Gpx
 import com.e.tracker.xml.gpx.domain.Track
+import com.e.tracker.xml.gpx.domain.WayPoint
 import kotlinx.coroutines.*
 import org.osmdroid.util.GeoPoint
+import java.io.File
 
 class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogListener  {
 
@@ -62,6 +67,14 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
             }
             "file" -> {
                 trackObject.type = TrackSourceType.FILE
+                trackObject.trackSourceType = TrackSourceType.FILE
+                val filePath = bundle?.getString("PATH")
+                if (filePath.isNullOrBlank()) {
+                    Toast.makeText(this, "No track path!", Toast.LENGTH_SHORT).show()
+                } else {
+                    makeTrackFromFile(filePath)
+                }
+
             }
             else -> {
                 trackObject.type = TrackSourceType.NEW
@@ -78,7 +91,10 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
         supportFragmentManager.beginTransaction()
             .add( R.id.container, mapFragment )
             .commit()
+
+        //this@OsmActivity.mapFragment.updateMap()
     }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         println("onActivityResult: $requestCode + $resultCode")
@@ -89,7 +105,12 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
         }
     }
 
-
+    /**
+     * Set TrackObject values
+     * Read coordinates for track from db.
+     *
+     * @param id
+     */
     fun makeTrackFromDb(id: Long) {
 
        // var trackObject = TrackObject()
@@ -114,12 +135,13 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
                 }
             }
         }
-
     }
 
 
     /**
      * Read track from table
+     *
+     * @param id
      */
     private suspend fun getTrack(id: Long) : TrackModel? {
        return  withContext(Dispatchers.IO) {
@@ -128,15 +150,52 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
         }
     }
 
-
-
-
+    /**
+     * Read coords from db
+     *
+     * @param id
+     */
     private suspend fun getCoords(id: Long) : List<TrackCoordModel> {
         return withContext(Dispatchers.IO) {
             val coords = coordsSource.getCoordsForId(id)
             coords
         }
     }
+
+
+    fun makeTrackFromFile(path: String) {
+        var parsedGpx: Gpx
+        val inputStream = File(path).inputStream()
+        parsedGpx = GPXParser().parse(inputStream)
+
+        val tracks = parsedGpx.tracks
+
+        for ( track in tracks) {
+            trackObject.trackName = track.trackName ?: ""
+            trackObject.trackDescription = track.trackDesc ?: ""
+        }
+
+        trackObject.id = 0
+        // parse coords
+        for (p in parsedGpx.wayPoints) {
+            if (p is WayPoint) {
+                val c = TrackCoordModel()
+                c.latitude = p.latitude
+                c.longitude = p.longitude
+                c.altitude = p.elevation
+
+                trackObject.coords.add(c)
+                trackObject.coordsGpx.add(GeoPoint(c.latitude ?: 0.0, c.longitude ?: 0.0))
+            }
+        }
+
+        trackObject.latitude = trackObject.coordsGpx.first().latitude
+        trackObject.longitude = trackObject.coordsGpx.first().longitude
+
+        this@OsmActivity.mapFragment.trackObject = trackObject
+        //this@OsmActivity.mapFragment.updateMap()
+    }
+
 
     /**
      * From AddressDialogFragment with address and position.

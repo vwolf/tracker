@@ -20,7 +20,6 @@ class Tracks {
         var filesList = mutableListOf<File>()
         var fileList = mutableListOf<File>()
 
-
         // get path's to external storage directoryies
         val state = Environment.getExternalStorageState()
         if( Environment.MEDIA_MOUNTED == state || Environment.MEDIA_MOUNTED_READ_ONLY == state ) {
