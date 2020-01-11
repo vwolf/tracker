@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.os.StrictMode
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.e.tracker.R
@@ -24,6 +25,9 @@ import kotlinx.coroutines.*
 import org.osmdroid.util.GeoPoint
 import java.io.File
 
+
+
+
 class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogListener  {
 
 
@@ -37,8 +41,6 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
 
     var trackObject = TrackObject()
     var mapFragment: FragmentOsmMap = FragmentOsmMap()
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -93,7 +95,23 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
             .commit()
 
         //this@OsmActivity.mapFragment.updateMap()
+
     }
+
+
+    /**
+     * Dispatch MotionEvent.ACTION_UP to map for map scroll
+     *
+     */
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+
+        if( ev?.action == MotionEvent.ACTION_UP) {
+            println("OsmActivity dispatchTouchEvent: ${ev.toString()}")
+            this@OsmActivity.mapFragment.receiveActionUP()
+        }
+        return super.dispatchTouchEvent(ev)
+    }
+
 
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -162,7 +180,11 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
         }
     }
 
-
+    /**
+     * Parse gpx file, extract meta data and coords
+     *
+     * @param path absolute path to .*gpx file
+     */
     fun makeTrackFromFile(path: String) {
         var parsedGpx: Gpx
         val inputStream = File(path).inputStream()

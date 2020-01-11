@@ -27,7 +27,8 @@
             android:paddingBottom="12dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="invisible">
 
             <ImageButton
                 android:id="@+id/map_toolbar_btn_edit"
@@ -69,6 +70,32 @@
 
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/map_static_toolbar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="#FFD54F"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
+            <ImageButton
+                android:id="@+id/map_static_btn_gps"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="#03FFFFFF"
+                android:src="@drawable/ic_location_on_black_24dp" />
+
+            <ImageButton
+                android:id="@+id/map_static_btn_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="#03FFFFFF"
+                android:src="@drawable/ic_insert_comment_black_24dp" />
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

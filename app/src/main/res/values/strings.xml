@@ -10,4 +10,7 @@
     <string name="track_button_submit">Submit</string>
     <string name="map_toolbar_edit">Edit path</string>
     <string name="map_toolbar_add">Add path point</string>
+
+    <string name="track_distance">Track Distance</string>
+    <string name="track_elevation">Track Elevation</string>
 </resources>

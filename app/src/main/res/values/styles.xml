@@ -24,4 +24,12 @@
     </style>
 
 
+    <style name="MapBottomSheet">
+        <item name="android:textSize">@dimen/map_bottom_sheet_text_size</item>
+        <item name="android:drawablePadding">@dimen/map_bottom_sheet_drawable_padding</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">@dimen/map_bottom_sheet_normal_padding</item>
+    </style>
+
 </resources>

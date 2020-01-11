@@ -9,7 +9,7 @@ import kotlin.properties.Delegates
 
 /**
  * Service class for track (Polyline)
- * Read and write DB
+ * Read from DB and write changes to DB
  *
  */
 class TrackObject {
@@ -111,15 +111,15 @@ class TrackObject {
                         coordsGpx.add(position -1, geoPoint)
                         // update trackPosition's of points from position to end
 
-                        for (i in position - 1..coords.size - 1) {
+                        for (i in position..coords.size - 1) {
                             // don't update added coord
                             if (coords[i].id != result) {
-                                println("update coord.trackPosition ${coords[i].id} to ${i + 1}")
+                                println("update coord.trackPosition ${coords[i].id} to ${i}")
                                 // any mixup in trackPostions?
                                 if ( coords[i].trackPosition == i) {
-                                    coordsSource.updatePositionOfCoord( i + 1, coords[i].id)
+                                    coordsSource.updatePositionOfCoord( i, coords[i + 1].id)
                                 } else {
-                                    coordsSource.updatePositionOfCoord(i + 1, coords[i].id)
+                                    coordsSource.updatePositionOfCoord(i, coords[i + 1].id)
                                 }
                             }
                         }
@@ -154,6 +154,16 @@ class TrackObject {
         //return -1L
     }
 
+    /**
+     * This overwrites an existing coord in db
+     */
+    private suspend fun updateCoord(trackCoordModel: TrackCoordModel) {
+
+        withContext(Dispatchers.IO) {
+            val result = coordsSource.update(trackCoordModel)
+            println("UpdateCoord result: $result")
+        }
+    }
 
 
     /**
@@ -203,6 +213,13 @@ class TrackObject {
     }
 
     /**
+     *
+     */
+    fun updateCoordPosition(coordModel: TrackCoordModel) {
+        uiScope.launch { updateCoord(coordModel) }
+    }
+
+    /**
      * This is function which try's to delete the trackCoord from DB table.
      * Update coords and coordsGpx list
      * Update the trackPosition's
@@ -219,7 +236,7 @@ class TrackObject {
                 var trackPosition = trackCoordModel.trackPosition
                 // update trackPosition if deleted coord was not the last in path
                 if (trackCoordIdx < coords.size - 1) {
-                    for (i in (trackCoordIdx)..(coords.size - 1)) {
+                    for (i in (trackCoordIdx + 1)..(coords.size - 1)) {
                         val newPosition = coords[i].trackPosition - 1
                         coordsSource.updatePositionOfCoord(newPosition, coords[i].id)
                     }
@@ -257,4 +274,6 @@ enum class TrackActionType {
     AddAtStart,
     AddAtEnd,
     RemoveSelected,
+    MoveMarker,
+    AddMarker,
 }

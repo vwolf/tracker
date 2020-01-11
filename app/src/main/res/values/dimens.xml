@@ -5,4 +5,11 @@
     <dimen name="newTrack_form_padding">12</dimen>
     <dimen name="margin">16dp</dimen>
     <dimen name="icon_size">64dp</dimen>
+
+
+    <dimen name="map_bottom_sheet_text_size">16dp</dimen>
+    <dimen name="map_bottom_sheet_drawable_padding">24dp</dimen>
+    <dimen name="map_bottom_sheet_default_margin">16dp</dimen>
+    <dimen name="map_bottom_sheet_normal_padding">16dp</dimen>
+
 </resources>

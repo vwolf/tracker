@@ -14,7 +14,7 @@ interface TrackCoordDatabaseDao {
     fun insertCoords(trackCoords: List<TrackCoordModel>) : List<Long>
 
     @Update
-    fun update(trackCoord: TrackCoordModel)
+    fun update(trackCoord: TrackCoordModel) : Int
 
     @Delete
     fun delete(trackCoord: TrackCoordModel) : Int

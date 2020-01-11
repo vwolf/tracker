@@ -40,7 +40,7 @@ class AdressesDialogFragment(
         try {
             listener = ctx as NoticeDialogListener
         } catch (e: ClassCastException) {
-            throw ClassCastException((ctx.toString() + " must implement NoticeDialogListener"))
+            throw ClassCastException("${ctx.toString()} must implement NoticeDialogListener")
         }
     }
 
