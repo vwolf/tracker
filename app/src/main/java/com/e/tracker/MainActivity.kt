@@ -37,6 +37,9 @@ class MainActivity : AppCompatActivity(){
 
         val networkPermissions = arrayOf( Manifest.permission.ACCESS_NETWORK_STATE)
         Permissions(applicationContext, this).requestPermissions(networkPermissions, PERMISSIONS_REQUEST_ACCESS_NETWORK_STATE)
+
+        val gpsPermissions = arrayOf( Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
+        Permissions(applicationContext, this).requestPermissions(gpsPermissions, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION )
     }
 
     // put the option on screen

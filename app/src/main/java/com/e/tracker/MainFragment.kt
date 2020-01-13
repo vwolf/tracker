@@ -62,7 +62,9 @@ class MainFragment : Fragment() {
 
         }
 
+        binding.buttonStart.setOnClickListener { view: View ->
 
+        }
         return binding.root
     }
 

@@ -20,6 +20,7 @@ import com.e.tracker.databinding.FragmentOsmMapBinding
 import com.e.tracker.track.TrackActionType
 import com.e.tracker.track.TrackObject
 import com.e.tracker.track.TrackSourceType
+import com.e.tracker.osm.OSMPathUtils
 import kotlinx.android.synthetic.main.fragment_osm_map.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -57,7 +58,7 @@ class FragmentOsmMap : Fragment() {
     lateinit var trackObject: TrackObject
 
     private var path: Polyline = Polyline(map)
-    private val pathM : MutableLiveData<Polyline> = MutableLiveData(path)
+    private val pathM: MutableLiveData<Polyline> = MutableLiveData(path)
 
     private var pathEditEnabled = false
     //private var pathPointRemoveEnabled = false
@@ -72,15 +73,15 @@ class FragmentOsmMap : Fragment() {
     private var selectedSegment = -1
 
     // Marker
-    private var selectedMarkers  = mutableListOf<Marker>()
+    private var selectedMarkers = mutableListOf<Marker>()
     private var selectedMarkersPathPosition = mutableListOf<Int>()
-    private var activeMarkerUid : String? = null
+    private var activeMarkerUid: String? = null
     private var activeMarker: Marker? = null
 
     // map scroll action
     private var scrollAction = false
     private var selectedMarkerStartPos = GeoPoint(0.0, 0.0)
-    private var selectedMarkerStartPosPixel = Point(0,0)
+    private var selectedMarkerStartPosPixel = Point(0, 0)
 
 
     override fun onCreateView(
@@ -90,9 +91,11 @@ class FragmentOsmMap : Fragment() {
     ): View? {
 
         val binding = DataBindingUtil.inflate<FragmentOsmMapBinding>(
-            inflater, R.layout.fragment_osm_map, container, false)
+            inflater, R.layout.fragment_osm_map, container, false
+        )
 
-        org.osmdroid.config.Configuration.getInstance().setUserAgentValue (this.context!!.packageName)
+        org.osmdroid.config.Configuration.getInstance()
+            .setUserAgentValue(this.context!!.packageName)
 
 
         binding.map.setUseDataConnection(true)
@@ -103,12 +106,12 @@ class FragmentOsmMap : Fragment() {
         binding.map.controller.setCenter(GeoPoint(trackObject.latitude, trackObject.longitude))
 
 
-        pathM.observe(this, Observer {  path = pathM.value!! })
+        pathM.observe(this, Observer { path = pathM.value!! })
 
         // get tap location using MapEventsOverlay
-        val mapEventsOverlay =  MapEventsOverlay( object : MapEventsReceiver {
+        val mapEventsOverlay = MapEventsOverlay(object : MapEventsReceiver {
             //val p : GeoPoint = GeoPoint(13.78, 52.12)
-            override fun singleTapConfirmedHelper(p : GeoPoint) : Boolean {
+            override fun singleTapConfirmedHelper(p: GeoPoint): Boolean {
                 println("MapView Tap ${p.latitude}  ${p.longitude}")
                 when (trackObject.type) {
                     TrackSourceType.DATABASE -> {
@@ -118,13 +121,18 @@ class FragmentOsmMap : Fragment() {
 
                         when (activeMarker?.id) {
                             "track_end" -> {
-                                trackObject.addCoord(geoPoint = p, res = { updatePath(TrackActionType.AddAtEnd) } )
+                                trackObject.addCoord(
+                                    geoPoint = p,
+                                    res = { updatePath(TrackActionType.AddAtEnd) })
                                 path.addPoint(p)
                                 activeMarker?.position = p
                             }
                             "track_start" -> {
                                 println("Add at track_start coordsGpx.size: ${trackObject.coordsGpx.size}")
-                                trackObject.addCoord(geoPoint = p, position = 1, res = { updatePath(TrackActionType.AddAtStart) })
+                                trackObject.addCoord(
+                                    geoPoint = p,
+                                    position = 1,
+                                    res = { updatePath(TrackActionType.AddAtStart) })
                                 activeMarker?.position = p
 
                             }
@@ -133,7 +141,8 @@ class FragmentOsmMap : Fragment() {
                         map.invalidate()
                         return true
                     }
-                    TrackSourceType.FILE -> { }
+                    TrackSourceType.FILE -> {
+                    }
                     TrackSourceType.NEW -> {
                         this@FragmentOsmMap.getLocationForTap(p)
                         return true
@@ -142,12 +151,12 @@ class FragmentOsmMap : Fragment() {
                 return false
             }
 
-            override fun longPressHelper(p: GeoPoint) : Boolean {
+            override fun longPressHelper(p: GeoPoint): Boolean {
                 println("MapView LongTap ${p.latitude}, ${p.longitude}")
                 return true
             }
 
-        } )
+        })
 
 
         binding.map.overlays.add(mapEventsOverlay)
@@ -163,7 +172,9 @@ class FragmentOsmMap : Fragment() {
                 onStaticPathInfo()
             }
 
-            binding.mapStaticBtnGps.setOnClickListener {}
+            binding.mapStaticBtnGps.setOnClickListener {
+                onGpsButton()
+            }
 
         } else {
             binding.mapToolbar.visibility = View.VISIBLE
@@ -255,9 +266,9 @@ class FragmentOsmMap : Fragment() {
      *
      *
      */
-    private var maplistener : MapListener = object : MapListener {
+    private var maplistener: MapListener = object : MapListener {
         @Override
-        override fun onScroll(event: ScrollEvent?) : Boolean {
+        override fun onScroll(event: ScrollEvent?): Boolean {
             println("Event x: ${event.toString()}")
 
             if (!scrollAction) {
@@ -270,13 +281,16 @@ class FragmentOsmMap : Fragment() {
                 val smNewPositionX = selectedMarkerStartPosPixel.x + event.x
                 val smNewPositionY = selectedMarkerStartPosPixel.y + event.y
                 val smNewPosition = map.projection.fromPixels(smNewPositionX, smNewPositionY)
-                selectedMarkers.first().position = GeoPoint(smNewPosition.latitude, smNewPosition.longitude)
+                selectedMarkers.first().position =
+                    GeoPoint(smNewPosition.latitude, smNewPosition.longitude)
 
                 // update path point
 //                path.points[selectedMarkersPathPosition.first()].latitude = smNewPosition.latitude
 //                path.points[selectedMarkersPathPosition.first()].longitude = smNewPosition.longitude
-                trackObject.coordsGpx[selectedMarkersPathPosition.first()].latitude = smNewPosition.latitude
-                trackObject.coordsGpx[selectedMarkersPathPosition.first()].longitude = smNewPosition.longitude
+                trackObject.coordsGpx[selectedMarkersPathPosition.first()].latitude =
+                    smNewPosition.latitude
+                trackObject.coordsGpx[selectedMarkersPathPosition.first()].longitude =
+                    smNewPosition.longitude
                 updatePath(TrackActionType.MoveMarker)
             }
 
@@ -288,7 +302,7 @@ class FragmentOsmMap : Fragment() {
          *
          */
         @Override
-        override fun onZoom(event: ZoomEvent) :Boolean {
+        override fun onZoom(event: ZoomEvent): Boolean {
             println("Zoom ${event.toString()}")
             removeMapListener()
 
@@ -306,13 +320,12 @@ class FragmentOsmMap : Fragment() {
     private fun addMapListener() {
         //val moveListener   = MapListener{}
         selectedMarkers.first().isDraggable = true
-        map.addMapListener( maplistener)
+        map.addMapListener(maplistener)
     }
 
     private fun removeMapListener() {
-        map.removeMapListener( maplistener )
+        map.removeMapListener(maplistener)
     }
-
 
 
     fun updateMap() {
@@ -329,7 +342,9 @@ class FragmentOsmMap : Fragment() {
 
     private fun trackStartMarker() {
 
-        val mIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_add_location_black_24dp)?.mutate()
+        val mIcon =
+            ContextCompat.getDrawable(requireContext(), R.drawable.ic_add_location_black_24dp)
+                ?.mutate()
         mIcon?.setTint(ContextCompat.getColor(requireContext(), R.color.schema_one_green))
 
         val startMarker = Marker(map)
@@ -355,7 +370,9 @@ class FragmentOsmMap : Fragment() {
 
     private fun trackEndMarker() {
 
-        val mIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_add_location_black_24dp)?.mutate()
+        val mIcon =
+            ContextCompat.getDrawable(requireContext(), R.drawable.ic_add_location_black_24dp)
+                ?.mutate()
         mIcon?.setTint(ContextCompat.getColor(requireContext(), R.color.schema_one_red))
 
         val endMarker = Marker(map)
@@ -388,14 +405,16 @@ class FragmentOsmMap : Fragment() {
      */
     fun updatePath(status: TrackActionType) {
         println("updatePath: $status")
-        when(status) {
-            TrackActionType.AddAtStart -> {}
-            TrackActionType.AddAtEnd -> {}
+        when (status) {
+            TrackActionType.AddAtStart -> {
+            }
+            TrackActionType.AddAtEnd -> {
+            }
             TrackActionType.RemoveSelected -> {
                 // update selected marker
                 val sm = selectedMarkersPathPosition.first()
                 if (sm < path.points.size) {
-                    selectedSegment =+ 1
+                    selectedSegment = +1
                     selectSegment(path, selectedSegment)
                 } else {
                     // last point in path?
@@ -423,7 +442,7 @@ class FragmentOsmMap : Fragment() {
     private fun addPathAsPolyline() {
         // convert coords into GeoPoint's
         val geoPoints = arrayListOf<GeoPoint>()
-        for ( coord in trackObject.coords) {
+        for (coord in trackObject.coords) {
             geoPoints.add(GeoPoint(coord.latitude!!, coord.longitude!!))
         }
 
@@ -456,20 +475,20 @@ class FragmentOsmMap : Fragment() {
 
         // convert coords into GeoPoint's
         val geoPoints = arrayListOf<GeoPoint>()
-        for ( coord in trackObject.coords) {
+        for (coord in trackObject.coords) {
             geoPoints.add(GeoPoint(coord.latitude!!, coord.longitude!!))
         }
 
         val roadManager = OSRMRoadManager(requireContext())
 
         GlobalScope.launch(IO) {
-                        val road = roadManager.getRoad(geoPoints)
+            val road = roadManager.getRoad(geoPoints)
             val roadOverlay = RoadManager.buildRoadOverlay(road)
 
             val nodeIcon = ContextCompat.getDrawable(requireContext(), R.drawable.marker_cluster)
             val nodeMarkers = mutableListOf<Marker>()
 
-            for ( node in road.mNodes) {
+            for (node in road.mNodes) {
                 val nodeMarker = Marker(map)
                 nodeMarker.position = node.mLocation
                 nodeMarker.icon = nodeIcon
@@ -499,27 +518,18 @@ class FragmentOsmMap : Fragment() {
      * @param mapView
      * @param eventPos
      */
-    private fun onClickOnPath(polyline: Polyline, mapView: MapView, eventPos: GeoPoint) : Boolean {
+    private fun onClickOnPath(polyline: Polyline, mapView: MapView, eventPos: GeoPoint): Boolean {
         println("onClick at ${eventPos.latitude}, ${eventPos.longitude}")
 
         val pathPoint = polyline.getCloseTo(eventPos, 6.0, mapView)
-        val segmentIndex = getCloseTo(eventPos, 6.0, mapView.projection, false)
+        val segmentIndex = OSMPathUtils().getCloseTo(path, eventPos, 6.0, mapView.projection, false)
+
+        //val segmentIndex = getCloseTo(eventPos, 6.0, mapView.projection, false)
         println("Pathpoint close to event: ${pathPoint.latitude}, ${pathPoint.longitude}")
         println("Index of Path segment: $segmentIndex")
 
         if (segmentIndex != null) {
             selectSegment(polyline, segmentIndex)
-//            val pointsToMark = mutableListOf<GeoPoint>()
-//            val pointsIdx = mutableListOf<Int>()
-//            val firstPointIdx = segmentIndex - 1
-//            //val secondPointIdx = segmentIndex
-//            pointsToMark.add(GeoPoint(polyline.points[firstPointIdx]))
-//            pointsToMark.add(GeoPoint(polyline.points[segmentIndex]))
-//            pointsIdx.addAll(listOf(firstPointIdx, segmentIndex))
-//            //pointsIdx.add(segmentIndex)
-//            addIconToPoints(pointsToMark, listOf(firstPointIdx, segmentIndex))
-//
-//            pathSegmentInfo(pointsToMark, segmentIndex)
 
             // when path segment selected but no marker - add point active
             map_toolbar_btn_addPoint.isEnabled = true
@@ -531,7 +541,7 @@ class FragmentOsmMap : Fragment() {
     }
 
 
-    private fun selectSegment(polyline: Polyline, segmentIdx : Int) {
+    private fun selectSegment(polyline: Polyline, segmentIdx: Int) {
         val pointsToMark = listOf(
             GeoPoint(polyline.points[segmentIdx - 1]),
             GeoPoint(polyline.points[segmentIdx])
@@ -546,19 +556,19 @@ class FragmentOsmMap : Fragment() {
     }
 
 
-
     /**
      * Set touched marker into selected state
      * Diable add point button
      *
      * @param marker tapped marker, must be on overlay
      */
-    private fun clickOnMarker(marker: Marker, idx: Int) : Boolean {
+    private fun clickOnMarker(marker: Marker, idx: Int): Boolean {
         println("clickOnMarker ${marker.position}, idx: $idx")
         var newMarkerSelected = false
         // first set display of marker to selected
         if (selectedMarkers.contains(marker)) {
-            marker.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_brightness_1_black_12dp)
+            marker.icon =
+                ContextCompat.getDrawable(requireContext(), R.drawable.ic_brightness_1_black_12dp)
             selectedMarkers.remove(marker)
             selectedMarkersPathPosition.remove(idx)
         } else {
@@ -592,19 +602,19 @@ class FragmentOsmMap : Fragment() {
             map.invalidate()
         }
 
-        if ( trackObject.trackSourceType == TrackSourceType.DATABASE && newMarkerSelected ) {
-                // show toolbar for selected marker
-                if (map_toolbar_btn_movePoint.isEnabled && map_toolbar_btn_movePoint.alpha == 1.0f) {
-                    map_toolbar_btn_addPoint.isEnabled = false
-                    map_toolbar_btn_addPoint.alpha = 0.5f
-                } else {
-                    map_toolbar_btn_removePoint.alpha = 1.0f
-                    map_toolbar_btn_removePoint.isEnabled = true
-                    map_toolbar_btn_movePoint.isEnabled = true
+        if (trackObject.trackSourceType == TrackSourceType.DATABASE && newMarkerSelected) {
+            // show toolbar for selected marker
+            if (map_toolbar_btn_movePoint.isEnabled && map_toolbar_btn_movePoint.alpha == 1.0f) {
+                map_toolbar_btn_addPoint.isEnabled = false
+                map_toolbar_btn_addPoint.alpha = 0.5f
+            } else {
+                map_toolbar_btn_removePoint.alpha = 1.0f
+                map_toolbar_btn_removePoint.isEnabled = true
+                map_toolbar_btn_movePoint.isEnabled = true
 
-                    map_toolbar_btn_addPoint.isEnabled = false
-                    map_toolbar_btn_addPoint.alpha = 0.5f
-                }
+                map_toolbar_btn_addPoint.isEnabled = false
+                map_toolbar_btn_addPoint.alpha = 0.5f
+            }
 
             map.invalidate()
         }
@@ -628,9 +638,10 @@ class FragmentOsmMap : Fragment() {
 //        println("icon.intrinsicWidth: ${i.intrinsicWidth}")
 //        i?.setBounds(0, 0, (i.intrinsicWidth * 0.5).toInt(), (i.intrinsicHeight * 0.5).toInt())
 
-        for ( (index, p) in points.withIndex() ) {
+        for ((index, p) in points.withIndex()) {
             val marker = Marker(map)
-            val i = ContextCompat.getDrawable(requireContext(), R.drawable.ic_brightness_1_black_12dp)
+            val i =
+                ContextCompat.getDrawable(requireContext(), R.drawable.ic_brightness_1_black_12dp)
             marker.id = "marker_selected"
             marker.position = p
             marker.setAnchor(0.5f, 0.5f)
@@ -661,7 +672,8 @@ class FragmentOsmMap : Fragment() {
     private fun pathSegmentInfo(points: List<GeoPoint>, pathIndex: Int) {
         if (points.size == 2) {
 
-            val pointsDistance = GeoPoint(points.first()).distanceToAsDouble(points.last()).toFloat()
+            val pointsDistance =
+                GeoPoint(points.first()).distanceToAsDouble(points.last()).toFloat()
             val pointsDistanceString = "%.2f".format(pointsDistance) + " m"
             activity?.runOnUiThread {
                 Toast.makeText(
@@ -674,7 +686,7 @@ class FragmentOsmMap : Fragment() {
         }
     }
 
-    private fun onEditButton(btn : ImageButton) {
+    private fun onEditButton(btn: ImageButton) {
         //btn.isEnabled = !btn.isEnabled
         if (btn.alpha == 0.5f) {
             btn.alpha = 1.0f
@@ -692,7 +704,7 @@ class FragmentOsmMap : Fragment() {
      *
      * @param btn
      */
-    private  fun onRemoveButton(btn: ImageButton) {
+    private fun onRemoveButton(btn: ImageButton) {
 
         println("Remove path point")
         if (btn.isEnabled && btn.alpha == 1.0f) {
@@ -739,17 +751,26 @@ class FragmentOsmMap : Fragment() {
      */
     private fun onAddPointButton(btn: ImageButton) {
         if (selectedSegment > -1 && selectedMarkers.isEmpty()) {
-            val distToNext = GeoPoint(trackObject.coordsGpx[selectedSegment - 1]).distanceToAsDouble(trackObject.coordsGpx[selectedSegment])
-            val bearingToNext = GeoPoint(trackObject.coordsGpx[selectedSegment - 1]).bearingTo(trackObject.coordsGpx[selectedSegment])
+            val distToNext =
+                GeoPoint(trackObject.coordsGpx[selectedSegment - 1]).distanceToAsDouble(trackObject.coordsGpx[selectedSegment])
+            val bearingToNext =
+                GeoPoint(trackObject.coordsGpx[selectedSegment - 1]).bearingTo(trackObject.coordsGpx[selectedSegment])
 
-            val pointInMiddle = GeoPoint(trackObject.coordsGpx[selectedSegment - 1]).destinationPoint(distToNext / 2, bearingToNext)
+            val pointInMiddle =
+                GeoPoint(trackObject.coordsGpx[selectedSegment - 1]).destinationPoint(
+                    distToNext / 2,
+                    bearingToNext
+                )
 
-            trackObject.addCoord(pointInMiddle, selectedSegment, res = { updatePath(TrackActionType.AddMarker) } )
+            trackObject.addCoord(
+                pointInMiddle,
+                selectedSegment,
+                res = { updatePath(TrackActionType.AddMarker) })
         }
     }
 
 
-    private  fun onStaticPathInfo() {
+    private fun onStaticPathInfo() {
         println("Path distance in meter: ${path.distance}")
         var pathDistance = path.distance.toFloat()
         var pathDistanceString = "$pathDistance m"
@@ -761,7 +782,10 @@ class FragmentOsmMap : Fragment() {
 
         var pathElevation = 0.0f
 
-        val dialog = MapBottomSheetDialog.getInstance(pathDistanceString, pathElevation.toString(), { bottomSheetDismiss()} )
+        val dialog = MapBottomSheetDialog.getInstance(
+            pathDistanceString,
+            pathElevation.toString(),
+            { bottomSheetDismiss() })
         dialog.show(requireFragmentManager(), MapBottomSheetDialog::class.java.simpleName)
 
 //        Toast.makeText(
@@ -777,11 +801,12 @@ class FragmentOsmMap : Fragment() {
      *
      * @param pathPointIdx selected path point
      */
-    private fun onPathPointInfo(pathPointIdx : Int) {
+    private fun onPathPointInfo(pathPointIdx: Int) {
         var computedDistance = 0.0f
 
-        for ( p in 0 until pathPointIdx - 1) {
-            computedDistance += GeoPoint(path.points[p]).distanceToAsDouble(path.points[p + 1]).toFloat()
+        for (p in 0 until pathPointIdx - 1) {
+            computedDistance += GeoPoint(path.points[p]).distanceToAsDouble(path.points[p + 1])
+                .toFloat()
         }
 
         var pathDistanceToEnd = path.distance.toFloat() - computedDistance
@@ -799,7 +824,10 @@ class FragmentOsmMap : Fragment() {
             pathDistanceToEndString = "%.2f".format(pathDistanceToEnd) + " km to end"
         }
 
-        val dialog = MapBottomSheetDialog.getInstance(computedDistanceString, pathDistanceToEndString, { bottomSheetDismiss() }  )
+        val dialog = MapBottomSheetDialog.getInstance(
+            computedDistanceString,
+            pathDistanceToEndString,
+            { bottomSheetDismiss() })
         dialog.show(requireFragmentManager(), MapBottomSheetDialog::class.java.simpleName)
     }
 
@@ -808,16 +836,20 @@ class FragmentOsmMap : Fragment() {
      */
     private fun bottomSheetDismiss() {
         println("bottomSheetDismiss")
-        if ( selectedMarkers.isNotEmpty() ) {
-            selectedMarkers.first().icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_brightness_1_black_12dp)
+        if (selectedMarkers.isNotEmpty()) {
+            selectedMarkers.first().icon =
+                ContextCompat.getDrawable(requireContext(), R.drawable.ic_brightness_1_black_12dp)
             selectedMarkers.clear()
             selectedMarkersPathPosition.clear()
             map.invalidate()
         }
     }
 
-
-    private fun onEnableGps() {}
+    /**
+     * Toggle gps functions
+     *
+     */
+    private fun onGpsButton() {}
 
     /**
      * Set state of toolbar button add depending situation
@@ -826,10 +858,10 @@ class FragmentOsmMap : Fragment() {
      *
      *
      */
-    fun setAddButtonState(state : Boolean?, uid: String?, item: OverlayItem?) : Boolean {
+    fun setAddButtonState(state: Boolean?, uid: String?, item: OverlayItem?): Boolean {
 
         // if state parameter then set
-        if ( state != null ) {
+        if (state != null) {
             map_toolbar_btn_addPoint.isEnabled = state
 
             if (state == true) {
@@ -842,7 +874,8 @@ class FragmentOsmMap : Fragment() {
 
         // no state requested, toogle state of add button
         // close any marker dialogs, are there any properties in ItemizedOverlayWithFocus which i can use?
-        val dialogItem = map.overlayManager.first { it is ItemizedOverlayWithFocus<*> } as ItemizedOverlayWithFocus<*>
+        val dialogItem =
+            map.overlayManager.first { it is ItemizedOverlayWithFocus<*> } as ItemizedOverlayWithFocus<*>
         dialogItem.unSetFocusedItem()
 
         map_toolbar_btn_addPoint.isEnabled = !map_toolbar_btn_addPoint.isEnabled
@@ -859,9 +892,9 @@ class FragmentOsmMap : Fragment() {
     }
 
 
-    private fun setAddButtonState(state: Boolean?, id: String, marker: Marker) : Boolean{
+    private fun setAddButtonState(state: Boolean?, id: String, marker: Marker): Boolean {
         // if state parameter then set
-        if ( state != null ) {
+        if (state != null) {
             map_toolbar_btn_addPoint.isEnabled = state
 
             if (state == true) {
@@ -874,7 +907,8 @@ class FragmentOsmMap : Fragment() {
 
         // no state requested, toogle state of add button
         // close any marker dialogs, are there any properties in ItemizedOverlayWithFocus which i can use?
-        val dialogItem = map.overlayManager.first { it is ItemizedOverlayWithFocus<*> } as ItemizedOverlayWithFocus<*>
+        val dialogItem =
+            map.overlayManager.first { it is ItemizedOverlayWithFocus<*> } as ItemizedOverlayWithFocus<*>
         dialogItem.unSetFocusedItem()
 
         map_toolbar_btn_addPoint.isEnabled = !map_toolbar_btn_addPoint.isEnabled
@@ -897,7 +931,7 @@ class FragmentOsmMap : Fragment() {
      *
      * @param geoPoint clicked point on map
      */
-    fun getLocationForTap( geoPoint: GeoPoint) {
+    fun getLocationForTap(geoPoint: GeoPoint) {
 
         val geoCoder = Geocoder(this.context)
         val addresses = geoCoder.getFromLocation(geoPoint.latitude, geoPoint.longitude, 1)
@@ -908,21 +942,22 @@ class FragmentOsmMap : Fragment() {
 
             var addressSequence = arrayOf<CharSequence>()
 
-            for( (index, address) in addresses.withIndex()) {
+            for ((index, address) in addresses.withIndex()) {
 
-                addressSequence = addressSequence.plusElement( "${address.adminArea}, ${address.subLocality}")
+                addressSequence =
+                    addressSequence.plusElement("${address.adminArea}, ${address.subLocality}")
             }
 
             addressSequence = addressSequence.plus("${addresses[0].getAddressLine(0)}")
 
-            val dialogFragment = AdressesDialogFragment("Select Location", addressSequence, geoPoint)
+            val dialogFragment =
+                AdressesDialogFragment("Select Location", addressSequence, geoPoint)
             dialogFragment.show(this.fragmentManager!!, "mydia")
         }
     }
 
 
-
-    fun logAddress( address: Address) {
+    fun logAddress(address: Address) {
         println("CountryName: ${address.countryName}")
         println("adminArea: ${address.adminArea}")
         println("featureName: ${address.featureName}")
@@ -931,315 +966,317 @@ class FragmentOsmMap : Fragment() {
         println("subLocality: ${address.subLocality}")
         println("maxAddressLineIndex: ${address.maxAddressLineIndex}")
 
-        for( i in 0..address.maxAddressLineIndex ) {
+        for (i in 0..address.maxAddressLineIndex) {
             println("address line: ${address.getAddressLine(i)}")
         }
     }
+}
+
 
     //##############################################################################################
 
-    /**
-     * Get polyline segment with pPoint.
-     * Detection is done in screen coordinates
-     *
-     * This function comes from From LinearRing.java. Also
-     * computeProjected(), setCloserPoint(), getBestOffset(), clipAndStore()
-     *
-     * @param pPoint
-     * @param tolerance in pixels
-     * @param pProjection
-     * @param pClosePath
-     * @return Index of path segemnt with pPoint in it
-     */
-    private fun getCloseTo(pPoint: GeoPoint, tolerance: Double, pProjection: Projection, pClosePath: Boolean) : Int? {
-
-        computeProjected(pProjection)
-        val pixel: Point = pProjection.toPixels(pPoint, null)
-        val offset = PointL()
-        getBestOffset(pProjection, offset)
-        clipAndStore(pProjection, offset, pClosePath, true, null)
-        val mapSize = TileSystem.MapSize(pProjection.zoomLevel)
-        val screenRect = pProjection.intrinsicScreenRect
-        val screenWidth = screenRect.width()
-        val screenHeight = screenRect.height()
-        var startX = pixel.x.toDouble()
-        while(startX - mapSize >= 0) {
-            startX -= mapSize
-        }
-        var startY = pixel.y.toDouble()
-        while (startY - mapSize >= 0) {
-            startY -= mapSize
-        }
-        val squaredTolerance = tolerance * tolerance
-        val point0 = PointL()
-        val point1 = PointL()
-        var first = true
-        var index = 0
-
-        for (point in pointsForMilestones) {
-            point1.set(point)
-            if (first) {
-                first = false
-            } else {
-                var x = startX
-                while (x < screenWidth) {
-                        var y = startY
-                        while (y < screenHeight) {
-                            val projectionFactor =
-                                Distance.getProjectionFactorToSegment(
-                                    x,
-                                    y,
-                                    point0.x.toDouble(),
-                                    point0.y.toDouble(),
-                                    point1.x.toDouble(),
-                                    point1.y.toDouble()
-                                )
-                            val squaredDistance =
-                                Distance.getSquaredDistanceToProjection(
-                                    x,
-                                    y,
-                                    point0.x.toDouble(),
-                                    point0.y.toDouble(),
-                                    point1.x.toDouble(),
-                                    point1.y.toDouble(),
-                                    projectionFactor
-                                )
-                            if (squaredTolerance > squaredDistance) {
-//                                val pointAX: Long = projectedPoints.get(2 * (index - 1))
-//                                val pointAY: Long = projectedPoints.get(2 * (index - 1) + 1)
-//                                val pointBX: Long = projectedPoints.get(2 * index)
-//                                val pointBY: Long = projectedPoints.get(2 * index + 1)
-//                                val projectionX =
-//                                    (pointAX + (pointBX - pointAX) * projectionFactor).toLong()
-//                                val projectionY =
-//                                    (pointAY + (pointBY - pointAY) * projectionFactor).toLong()
-
-                                return index
-//                                return MapView.getTileSystem()
-//                                    .getGeoFromMercator(
-//                                        projectionX, projectionY, pProjection.mProjectedMapSize,
-//                                        null, false, false
-//                                    )
-                            }
-                            y += mapSize
-                        }
-                        x += mapSize
-
-                }
-            }
-
-            point0.set(point1)
-            index++
-        }
-        return null
-    }
-
-    /**
-     * ToDo Get the polyline to fill projectedPoints
-     *
-     * @param pProjection
-     */
-    fun computeProjected( pProjection: Projection) {
-        // points in path * 2
-        //projectedPoints = mutableListOf<Long>((path.points.size * 2).toLong())
-        projectedPoints = LongArray(trackObject.coordsGpx.size * 2)
-
-
-//        if (projectedPoints == null || projectedPoints.size != trackObject.coordsGpx.size * 2) {
-//            projectedPoints = LongArray(projectedPoints.size * 2)
+//    /**
+//     * Get polyline segment with pPoint.
+//     * Detection is done in screen coordinates
+//     *
+//     * This function comes from From LinearRing.java. Also
+//     * computeProjected(), setCloserPoint(), getBestOffset(), clipAndStore()
+//     *
+//     * @param pPoint
+//     * @param tolerance in pixels
+//     * @param pProjection
+//     * @param pClosePath
+//     * @return Index of path segemnt with pPoint in it
+//     */
+//    private fun getCloseTo(pPoint: GeoPoint, tolerance: Double, pProjection: Projection, pClosePath: Boolean) : Int? {
+//
+//        computeProjected(pProjection)
+//        val pixel: Point = pProjection.toPixels(pPoint, null)
+//        val offset = PointL()
+//        getBestOffset(pProjection, offset)
+//        clipAndStore(pProjection, offset, pClosePath, true, null)
+//        val mapSize = TileSystem.MapSize(pProjection.zoomLevel)
+//        val screenRect = pProjection.intrinsicScreenRect
+//        val screenWidth = screenRect.width()
+//        val screenHeight = screenRect.height()
+//        var startX = pixel.x.toDouble()
+//        while(startX - mapSize >= 0) {
+//            startX -= mapSize
 //        }
-        var minX = 0L
-        var maxX = 0L
-        var minY = 0L
-        var maxY = 0L
-        var index = 0
-        val previous = PointL()
-        val current = PointL()
-        for (currentGeo in path.points) {
-            pProjection.toProjectedPixels(currentGeo.latitude, currentGeo.longitude, false, current)
+//        var startY = pixel.y.toDouble()
+//        while (startY - mapSize >= 0) {
+//            startY -= mapSize
+//        }
+//        val squaredTolerance = tolerance * tolerance
+//        val point0 = PointL()
+//        val point1 = PointL()
+//        var first = true
+//        var index = 0
+//
+//        for (point in pointsForMilestones) {
+//            point1.set(point)
+//            if (first) {
+//                first = false
+//            } else {
+//                var x = startX
+//                while (x < screenWidth) {
+//                        var y = startY
+//                        while (y < screenHeight) {
+//                            val projectionFactor =
+//                                Distance.getProjectionFactorToSegment(
+//                                    x,
+//                                    y,
+//                                    point0.x.toDouble(),
+//                                    point0.y.toDouble(),
+//                                    point1.x.toDouble(),
+//                                    point1.y.toDouble()
+//                                )
+//                            val squaredDistance =
+//                                Distance.getSquaredDistanceToProjection(
+//                                    x,
+//                                    y,
+//                                    point0.x.toDouble(),
+//                                    point0.y.toDouble(),
+//                                    point1.x.toDouble(),
+//                                    point1.y.toDouble(),
+//                                    projectionFactor
+//                                )
+//                            if (squaredTolerance > squaredDistance) {
+////                                val pointAX: Long = projectedPoints.get(2 * (index - 1))
+////                                val pointAY: Long = projectedPoints.get(2 * (index - 1) + 1)
+////                                val pointBX: Long = projectedPoints.get(2 * index)
+////                                val pointBY: Long = projectedPoints.get(2 * index + 1)
+////                                val projectionX =
+////                                    (pointAX + (pointBX - pointAX) * projectionFactor).toLong()
+////                                val projectionY =
+////                                    (pointAY + (pointBY - pointAY) * projectionFactor).toLong()
+//
+//                                return index
+////                                return MapView.getTileSystem()
+////                                    .getGeoFromMercator(
+////                                        projectionX, projectionY, pProjection.mProjectedMapSize,
+////                                        null, false, false
+////                                    )
+//                            }
+//                            y += mapSize
+//                        }
+//                        x += mapSize
+//
+//                }
+//            }
+//
+//            point0.set(point1)
+//            index++
+//        }
+//        return null
+//    }
 
-            if (index == 0) {
-                minX = current.x
-                maxX = current.x
-                minY = current.y
-                maxY = current.y
-            } else {
-                setCloserPoint(previous, current, pProjection.mProjectedMapSize)
-                if (minX > current.x) {
-                    minX = current.x
-                }
-                if (maxX < current.x) {
-                    maxX = current.x
-                }
-                if (minY > current.y) {
-                    minY = current.y
-                }
-                if (maxY < current.y) {
-                    maxY = current.y
-                }
-            }
-            projectedPoints[2 * index] = current.x
-            projectedPoints[2 * index + 1] = current.y
-            previous.set(current.x, current.y)
-            index++
-        }
-        projectedCenter.set((minX + maxX) / 2, (minY + maxY) / 2)
-    }
+//    /**
+//     * ToDo Get the polyline to fill projectedPoints
+//     *
+//     * @param pProjection
+//     */
+//    fun computeProjected( pProjection: Projection) {
+//        // points in path * 2
+//        //projectedPoints = mutableListOf<Long>((path.points.size * 2).toLong())
+//        projectedPoints = LongArray(trackObject.coordsGpx.size * 2)
+//
+//
+////        if (projectedPoints == null || projectedPoints.size != trackObject.coordsGpx.size * 2) {
+////            projectedPoints = LongArray(projectedPoints.size * 2)
+////        }
+//        var minX = 0L
+//        var maxX = 0L
+//        var minY = 0L
+//        var maxY = 0L
+//        var index = 0
+//        val previous = PointL()
+//        val current = PointL()
+//        for (currentGeo in path.points) {
+//            pProjection.toProjectedPixels(currentGeo.latitude, currentGeo.longitude, false, current)
+//
+//            if (index == 0) {
+//                minX = current.x
+//                maxX = current.x
+//                minY = current.y
+//                maxY = current.y
+//            } else {
+//                setCloserPoint(previous, current, pProjection.mProjectedMapSize)
+//                if (minX > current.x) {
+//                    minX = current.x
+//                }
+//                if (maxX < current.x) {
+//                    maxX = current.x
+//                }
+//                if (minY > current.y) {
+//                    minY = current.y
+//                }
+//                if (maxY < current.y) {
+//                    maxY = current.y
+//                }
+//            }
+//            projectedPoints[2 * index] = current.x
+//            projectedPoints[2 * index + 1] = current.y
+//            previous.set(current.x, current.y)
+//            index++
+//        }
+//        projectedCenter.set((minX + maxX) / 2, (minY + maxY) / 2)
+//    }
+//
+//    private fun setCloserPoint(pPrevious: PointL, pNext: PointL, pWorldSize: Double) {
+//        while (isHorizontalRepeating && abs(pNext.x - pWorldSize - pPrevious.x) < abs(
+//                pNext.x - pPrevious.x
+//            )
+//        ) {
+//            pNext.x -= pWorldSize.toLong()
+//        }
+//        while (isHorizontalRepeating && abs(pNext.x + pWorldSize - pPrevious.x) < abs(
+//                pNext.x - pPrevious.x
+//            )
+//        ) {
+//            pNext.x += pWorldSize.toLong()
+//        }
+//        while (isVerticalRepeating && abs(pNext.y - pWorldSize - pPrevious.y) < abs(
+//                pNext.y - pPrevious.y
+//            )
+//        ) {
+//            pNext.y -= pWorldSize.toLong()
+//        }
+//        while (isVerticalRepeating && abs(pNext.y + pWorldSize - pPrevious.y) < abs(
+//                pNext.y - pPrevious.y
+//            )
+//        ) {
+//            pNext.y += pWorldSize.toLong()
+//        }
+//    }
+//
+//
+//    /**
+//     * Compute the pixel offset so that a list of pixel segments display in the best possible way:
+//     * the center of all pixels is as close to the screen center as possible
+//     * This notion of pixel offset only has a meaning on very low zoom level,
+//     * when a GeoPoint can be projected on different places on the screen.
+//     */
+//    private fun getBestOffset(pProjection: Projection, pOffset: PointL) {
+//        val powerDifference = pProjection.projectedPowerDifference
+//        val center = pProjection.getLongPixelsFromProjected(
+//            projectedCenter, powerDifference, false, null
+//        )
+//        val screenRect = pProjection.intrinsicScreenRect
+//        val screenCenterX = (screenRect.left + screenRect.right) / 2.0
+//        val screenCenterY = (screenRect.top + screenRect.bottom) / 2.0
+//        val worldSize = TileSystem.MapSize(pProjection.zoomLevel)
+//        getBestOffset(
+//            center.x.toDouble(),
+//            center.y.toDouble(),
+//            screenCenterX,
+//            screenCenterY,
+//            worldSize,
+//            pOffset
+//        )
+//    }
+//
+//
+//    private fun getBestOffset(
+//        pPolyCenterX: Double,
+//        pPolyCenterY: Double,
+//        pScreenCenterX: Double,
+//        pScreenCenterY: Double,
+//        pWorldSize: Double,
+//        pOffset: PointL) {
+//
+//        val worldSize = Math.round(pWorldSize)
+//        var deltaPositive = 0
+//        var deltaNegative = 0
+//        if (!isVerticalRepeating) {
+//            deltaPositive = 0
+//            deltaNegative = 0
+//        } else {
+//            deltaPositive = getBestOffset(
+//                pPolyCenterX, pPolyCenterY, pScreenCenterX, pScreenCenterY, 0, worldSize
+//            )
+//            deltaNegative = getBestOffset(
+//                pPolyCenterX, pPolyCenterY, pScreenCenterX, pScreenCenterY, 0, -worldSize
+//            )
+//
+//        }
+//
+//        pOffset.y =
+//            worldSize * if (deltaPositive > deltaNegative) deltaPositive else -deltaNegative
+//        if (!isHorizontalRepeating) {
+//            deltaPositive = 0
+//            deltaNegative = 0
+//        } else {
+//            deltaPositive = getBestOffset(
+//                pPolyCenterX, pPolyCenterY, pScreenCenterX, pScreenCenterY, worldSize, 0
+//            )
+//            deltaNegative = getBestOffset(
+//                pPolyCenterX, pPolyCenterY, pScreenCenterX, pScreenCenterY, -worldSize, 0
+//            )
+//        }
+//        pOffset.x =
+//            worldSize * if (deltaPositive > deltaNegative) deltaPositive else -deltaNegative
+//    }
+//
+//
+//    private fun getBestOffset(
+//        pPolyCenterX: Double, pPolyCenterY: Double,
+//        pScreenCenterX: Double, pScreenCenterY: Double,
+//        pDeltaX: Long, pDeltaY: Long
+//    ): Int {
+//        var squaredDistance = 0.0
+//        var i = 0
+//        while (true) {
+//            val tmpSquaredDistance = Distance.getSquaredDistanceToPoint(
+//                pPolyCenterX + i * pDeltaX, pPolyCenterY + i * pDeltaY,
+//                pScreenCenterX, pScreenCenterY
+//            )
+//            if (i == 0 || squaredDistance > tmpSquaredDistance) {
+//                squaredDistance = tmpSquaredDistance
+//                i++
+//            } else {
+//                break
+//            }
+//        }
+//        return i - 1
+//    }
+//
+//
+//    private fun clipAndStore(
+//        pProjection: Projection,
+//        pOffset: PointL,
+//        pClosePath: Boolean,
+//        pStorePoints: Boolean,
+//        pSegmentClipper: SegmentClipper?
+//    ) {
+//        pointsForMilestones.clear()
+//        val powerDifference = pProjection.projectedPowerDifference
+//        val projected = PointL()
+//        val point = PointL()
+//        val first = PointL()
+//        var i = 0
+//        while (i < projectedPoints.size) {
+//            projected[projectedPoints.get(i)] = projectedPoints[i + 1]
+//            pProjection.getLongPixelsFromProjected(projected, powerDifference, false, point)
+//            val x = point.x + pOffset.x
+//            val y = point.y + pOffset.y
+//            if (pStorePoints) {
+//                pointsForMilestones.add(x, y)
+//            }
+//            pSegmentClipper?.add(x, y)
+//            if (i == 0) {
+//                first[x] = y
+//            }
+//            i += 2
+//        }
+//        if (pClosePath) {
+//            pSegmentClipper?.add(first.x, first.y)
+//            if (pStorePoints) {
+//                pointsForMilestones.add(first.x, first.y)
+//            }
+//        }
+//    }
 
-    private fun setCloserPoint(pPrevious: PointL, pNext: PointL, pWorldSize: Double) {
-        while (isHorizontalRepeating && abs(pNext.x - pWorldSize - pPrevious.x) < abs(
-                pNext.x - pPrevious.x
-            )
-        ) {
-            pNext.x -= pWorldSize.toLong()
-        }
-        while (isHorizontalRepeating && abs(pNext.x + pWorldSize - pPrevious.x) < abs(
-                pNext.x - pPrevious.x
-            )
-        ) {
-            pNext.x += pWorldSize.toLong()
-        }
-        while (isVerticalRepeating && abs(pNext.y - pWorldSize - pPrevious.y) < abs(
-                pNext.y - pPrevious.y
-            )
-        ) {
-            pNext.y -= pWorldSize.toLong()
-        }
-        while (isVerticalRepeating && abs(pNext.y + pWorldSize - pPrevious.y) < abs(
-                pNext.y - pPrevious.y
-            )
-        ) {
-            pNext.y += pWorldSize.toLong()
-        }
-    }
-
-
-    /**
-     * Compute the pixel offset so that a list of pixel segments display in the best possible way:
-     * the center of all pixels is as close to the screen center as possible
-     * This notion of pixel offset only has a meaning on very low zoom level,
-     * when a GeoPoint can be projected on different places on the screen.
-     */
-    private fun getBestOffset(pProjection: Projection, pOffset: PointL) {
-        val powerDifference = pProjection.projectedPowerDifference
-        val center = pProjection.getLongPixelsFromProjected(
-            projectedCenter, powerDifference, false, null
-        )
-        val screenRect = pProjection.intrinsicScreenRect
-        val screenCenterX = (screenRect.left + screenRect.right) / 2.0
-        val screenCenterY = (screenRect.top + screenRect.bottom) / 2.0
-        val worldSize = TileSystem.MapSize(pProjection.zoomLevel)
-        getBestOffset(
-            center.x.toDouble(),
-            center.y.toDouble(),
-            screenCenterX,
-            screenCenterY,
-            worldSize,
-            pOffset
-        )
-    }
-
-
-    private fun getBestOffset(
-        pPolyCenterX: Double,
-        pPolyCenterY: Double,
-        pScreenCenterX: Double,
-        pScreenCenterY: Double,
-        pWorldSize: Double,
-        pOffset: PointL) {
-
-        val worldSize = Math.round(pWorldSize)
-        var deltaPositive = 0
-        var deltaNegative = 0
-        if (!isVerticalRepeating) {
-            deltaPositive = 0
-            deltaNegative = 0
-        } else {
-            deltaPositive = getBestOffset(
-                pPolyCenterX, pPolyCenterY, pScreenCenterX, pScreenCenterY, 0, worldSize
-            )
-            deltaNegative = getBestOffset(
-                pPolyCenterX, pPolyCenterY, pScreenCenterX, pScreenCenterY, 0, -worldSize
-            )
-
-        }
-
-        pOffset.y =
-            worldSize * if (deltaPositive > deltaNegative) deltaPositive else -deltaNegative
-        if (!isHorizontalRepeating) {
-            deltaPositive = 0
-            deltaNegative = 0
-        } else {
-            deltaPositive = getBestOffset(
-                pPolyCenterX, pPolyCenterY, pScreenCenterX, pScreenCenterY, worldSize, 0
-            )
-            deltaNegative = getBestOffset(
-                pPolyCenterX, pPolyCenterY, pScreenCenterX, pScreenCenterY, -worldSize, 0
-            )
-        }
-        pOffset.x =
-            worldSize * if (deltaPositive > deltaNegative) deltaPositive else -deltaNegative
-    }
-
-
-    private fun getBestOffset(
-        pPolyCenterX: Double, pPolyCenterY: Double,
-        pScreenCenterX: Double, pScreenCenterY: Double,
-        pDeltaX: Long, pDeltaY: Long
-    ): Int {
-        var squaredDistance = 0.0
-        var i = 0
-        while (true) {
-            val tmpSquaredDistance = Distance.getSquaredDistanceToPoint(
-                pPolyCenterX + i * pDeltaX, pPolyCenterY + i * pDeltaY,
-                pScreenCenterX, pScreenCenterY
-            )
-            if (i == 0 || squaredDistance > tmpSquaredDistance) {
-                squaredDistance = tmpSquaredDistance
-                i++
-            } else {
-                break
-            }
-        }
-        return i - 1
-    }
-
-
-    private fun clipAndStore(
-        pProjection: Projection,
-        pOffset: PointL,
-        pClosePath: Boolean,
-        pStorePoints: Boolean,
-        pSegmentClipper: SegmentClipper?
-    ) {
-        pointsForMilestones.clear()
-        val powerDifference = pProjection.projectedPowerDifference
-        val projected = PointL()
-        val point = PointL()
-        val first = PointL()
-        var i = 0
-        while (i < projectedPoints.size) {
-            projected[projectedPoints.get(i)] = projectedPoints[i + 1]
-            pProjection.getLongPixelsFromProjected(projected, powerDifference, false, point)
-            val x = point.x + pOffset.x
-            val y = point.y + pOffset.y
-            if (pStorePoints) {
-                pointsForMilestones.add(x, y)
-            }
-            pSegmentClipper?.add(x, y)
-            if (i == 0) {
-                first[x] = y
-            }
-            i += 2
-        }
-        if (pClosePath) {
-            pSegmentClipper?.add(first.x, first.y)
-            if (pStorePoints) {
-                pointsForMilestones.add(first.x, first.y)
-            }
-        }
-    }
-}
 
 //org.osmdroid.bonuspack.kml.KmlPoint.
 //        val geoJson = JSONObject(mapOf(
