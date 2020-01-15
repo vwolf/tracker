@@ -91,7 +91,7 @@ class FragmentOsmMap : Fragment() {
     private var selectedMarkerStartPos = GeoPoint(0.0, 0.0)
     private var selectedMarkerStartPosPixel = Point(0, 0)
 
-    var fusedLocationProviderClient: FusedLocationProviderClient? = null
+    //var fusedLocationProviderClient: FusedLocationProviderClient? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -215,7 +215,7 @@ class FragmentOsmMap : Fragment() {
             }
         }
 
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext())
+        //fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
         return binding.root
     }
@@ -258,8 +258,7 @@ class FragmentOsmMap : Fragment() {
         println("ACTIONUP")
         if (scrollAction) {
             scrollAction = false
-            val pathIndex: Int
-            pathIndex = selectedMarkersPathPosition.first() + 1
+            val pathIndex = selectedMarkersPathPosition.first()
             trackObject.coords[pathIndex].latitude = trackObject.coordsGpx[pathIndex].latitude
             trackObject.coords[pathIndex].longitude = trackObject.coordsGpx[pathIndex].longitude
 
@@ -286,6 +285,7 @@ class FragmentOsmMap : Fragment() {
                 scrollAction = true
                 selectedMarkerStartPos = selectedMarkers.first().position
                 selectedMarkerStartPosPixel = map.projection.toPixels(selectedMarkerStartPos, null)
+                Log.i("LOG", "Marker start position: $selectedMarkerStartPos")
             }
 
             if (event != null) {
@@ -371,14 +371,17 @@ class FragmentOsmMap : Fragment() {
                 Toast.LENGTH_LONG
             ).show()
             activeMarker = marker
-            setAddButtonState(true, marker.id, marker)
-            marker.showInfoWindow()
+            //setAddButtonState(true, marker.id, marker)
+            //marker.showInfoWindow()
             true
         }
         map.overlays.add(startMarker)
     }
 
-
+    /**
+     * Marker for end of path.
+     * When this marker is selected, each tap on map extends path to tap position
+     */
     private fun trackEndMarker() {
 
         val mIcon =
@@ -393,14 +396,28 @@ class FragmentOsmMap : Fragment() {
         endMarker.id = "track_end"
         endMarker.icon = mIcon
         endMarker.setOnMarkerClickListener { marker, mapView ->
+            var toastText = marker.title.toString()
+            if (activeMarker == marker) {
+                setAddButtonState(false, marker.id, marker)
+                activeMarker = null
+                mIcon?.setTint(ContextCompat.getColor(requireContext(), R.color.schema_one_red))
+                map.invalidate()
+                toastText += " is not active."
+            } else {
+                activeMarker = marker
+                setAddButtonState(true, marker.id, marker)
+                mIcon?.setTint(ContextCompat.getColor(requireContext(), R.color.schema_one_blue))
+                map.invalidate()
+                //marker.showInfoWindow()
+                toastText += " is active. Touch on map to extend track."
+            }
+
             Toast.makeText(
                 context,
-                marker.title.toString() + " was clicked",
+                toastText,
                 Toast.LENGTH_LONG
             ).show()
 
-            activeMarker = marker
-            marker.showInfoWindow()
             true
         }
         map.overlays.add(endMarker)
@@ -638,11 +655,11 @@ class FragmentOsmMap : Fragment() {
      * This will aways clear all overlays of type Marker?
      * That could be a problem
      *
-     * @param points
+     * @param points Start and end point of selected path segment
+     * @param pointIdx
      */
     private fun addIconToPoints(points: List<GeoPoint>, pointIdx: List<Int>) {
 
-        //map.overlays[0].
         map.overlayManager.removeAll { it is Marker }
 
 //        println("icon.bounds: ${i?.bounds!!.right}")
@@ -697,22 +714,8 @@ class FragmentOsmMap : Fragment() {
         }
     }
 
-    val regSetting = LocationRequest.create().apply {
-        fastestInterval = 10000
-        interval = 10000
-        priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        smallestDisplacement = 1.0f
-    }
 
-    val locationUpdates = object: LocationCallback() {
-        override fun onLocationResult(lr: LocationResult) {
-            Log.e("LOG", lr.toString())
-            Log.e("LOG", "Newest location; ${lr.locations.last()}")
-        }
-    }
 
-//    val locationTrackingService = LocationTrackingService::class.java
-//    val intent = Intent(context, locationTrackingService)
 
     /**
      * Toggles location service on and of?
@@ -743,43 +746,11 @@ class FragmentOsmMap : Fragment() {
         Log.e("LOG", "onLocationChangeFromService")
         Log.e("Log", location.toString())
         //return latitude
+
+        trackObject.addCoord(
+            GeoPoint(location.latitude, location.longitude),
+            res = { updatePath(TrackActionType.AddAtEnd) })
     }
-
-
-
-    fun getLocationUpdate() {
-        val REQUEST_CHECK_STATE = 12300
-        val builder = LocationSettingsRequest.Builder()
-            .addLocationRequest(regSetting)
-
-        val client = LocationServices.getSettingsClient(requireActivity())
-        client.checkLocationSettings(builder.build()).addOnCompleteListener { task ->
-            try {
-//                if (task.result is LocationSettingsResponse) {
-//                    var state = task.result.locationSettingsStates
-//                }
-                var state: LocationSettingsStates = task.result!!.locationSettingsStates
-                Log.e("LOG", "LocationSettings: \n" +
-                "GPS present: ${state.isGpsPresent} \n" +
-                "GPS usable: ${state.isGpsUsable}"
-                )
-            } catch (e: RuntimeException) {
-                if (e.cause is ResolvableApiException) {
-                    Log.e("LOG", e.toString())
-                }
-//                   (e.cause as ResolvableApiException).startResolutionForResult(
-//                        this@MainActivity,
-//                        REQUEST_CHECK_STATE
-//                   )
-            }
-        }
-    }
-
-
-    fun onLocationChange(location: Location) {
-        println(location.toString())
-    }
-
 
 
     /**
@@ -848,7 +819,7 @@ class FragmentOsmMap : Fragment() {
 
             trackObject.addCoord(
                 pointInMiddle,
-                selectedSegment,
+                selectedSegment + 1,
                 res = { updatePath(TrackActionType.AddMarker) })
         }
     }

@@ -76,6 +76,7 @@ class TrackObject {
      *
      * @param geoPoint coordinates for path point
      * @param position position of coord in path,
+     * @param res return after adding coord and updating db
      */
     fun addCoord(geoPoint: GeoPoint, position: Int? = 0, res: () -> Unit ) : Boolean {
         println("addCoord at position $position")
@@ -107,20 +108,22 @@ class TrackObject {
 
                     } else {
                         // add at position of path
-                        coords.add(position -1, trackCoordModel)
-                        coordsGpx.add(position -1, geoPoint)
+                        coords.add(position - 1, trackCoordModel)
+                        coordsGpx.add(position  - 1, geoPoint)
                         // update trackPosition's of points from position to end
 
-                        for (i in position..coords.size - 1) {
+                        for (i in position - 1..coords.size - 1) {
                             // don't update added coord
                             if (coords[i].id != result) {
-                                println("update coord.trackPosition ${coords[i].id} to ${i}")
+                                println("update coord.trackPosition ${coords[i].id} to ${i + 1}")
                                 // any mixup in trackPostions?
-                                if ( coords[i].trackPosition == i) {
-                                    coordsSource.updatePositionOfCoord( i, coords[i + 1].id)
-                                } else {
-                                    coordsSource.updatePositionOfCoord(i, coords[i + 1].id)
+                                if ( coords[i].trackPosition >= position) {
+                                    coordsSource.updatePositionOfCoord( coords[i].trackPosition + 1, coords[i].id)
+                                    coords[i].trackPosition += 1
                                 }
+//                                else {
+//                                    coordsSource.updatePositionOfCoord(i + 1, coords[i].id)
+//                                }
                             }
                         }
                         res()

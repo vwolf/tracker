@@ -102,7 +102,7 @@ class LocationTrackingService : Service() {
 
         fun startService(context: Context, callback: (Location) -> Unit) {
             updatecallback = callback
-            //savecallBack(callback)
+
             val startIntent = Intent(context, LocationTrackingService::class.java)
             //startIntent.putExtra("extra", "extra")
            // startService(startIntent)
@@ -115,9 +115,7 @@ class LocationTrackingService : Service() {
             context.stopService(stopIntent)
         }
 
-        fun savecallBack(cb :  (Double) -> Unit) {
-            val cbs = cb
-        }
+
 
         fun defaultNotification(context: Context): Notification {
 
