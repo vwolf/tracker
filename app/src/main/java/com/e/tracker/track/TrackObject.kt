@@ -186,6 +186,7 @@ class TrackObject {
     /**
      *
      * @param idx position index of trackCoord in path
+     * @param res
      */
     fun deleteCoord(idx: Int, res: () -> Unit) {
         val pathPointIdx = coords[idx].id

@@ -1,16 +1,22 @@
 package com.e.tracker.osm
 
+import android.app.Activity
+import android.app.ActivityManager
 import android.content.Context
+import android.content.Intent
 import android.graphics.Point
 import android.location.Address
 import android.location.Geocoder
+import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
@@ -21,6 +27,8 @@ import com.e.tracker.track.TrackActionType
 import com.e.tracker.track.TrackObject
 import com.e.tracker.track.TrackSourceType
 import com.e.tracker.osm.OSMPathUtils
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.*
 import kotlinx.android.synthetic.main.fragment_osm_map.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -35,9 +43,9 @@ import org.osmdroid.events.ZoomEvent
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.*
 import org.osmdroid.views.MapView
-import org.osmdroid.views.Projection
 import org.osmdroid.views.overlay.*
-import kotlin.math.abs
+import java.lang.RuntimeException
+
 
 
 /**
@@ -63,11 +71,11 @@ class FragmentOsmMap : Fragment() {
     private var pathEditEnabled = false
     //private var pathPointRemoveEnabled = false
 
-    private var projectedPoints: LongArray = longArrayOf()
-    private val projectedCenter = PointL()
-    private val isHorizontalRepeating = true
-    private val isVerticalRepeating = true
-    private val pointsForMilestones = ListPointL()
+//    private var projectedPoints: LongArray = longArrayOf()
+//    private val projectedCenter = PointL()
+//    private val isHorizontalRepeating = true
+//    private val isVerticalRepeating = true
+//    private val pointsForMilestones = ListPointL()
 
     // Path segment
     private var selectedSegment = -1
@@ -83,6 +91,7 @@ class FragmentOsmMap : Fragment() {
     private var selectedMarkerStartPos = GeoPoint(0.0, 0.0)
     private var selectedMarkerStartPosPixel = Point(0, 0)
 
+    var fusedLocationProviderClient: FusedLocationProviderClient? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -205,6 +214,8 @@ class FragmentOsmMap : Fragment() {
                 onMovePointButton(binding.mapToolbarBtnMovePoint)
             }
         }
+
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
         return binding.root
     }
@@ -686,17 +697,90 @@ class FragmentOsmMap : Fragment() {
         }
     }
 
+    val regSetting = LocationRequest.create().apply {
+        fastestInterval = 10000
+        interval = 10000
+        priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        smallestDisplacement = 1.0f
+    }
+
+    val locationUpdates = object: LocationCallback() {
+        override fun onLocationResult(lr: LocationResult) {
+            Log.e("LOG", lr.toString())
+            Log.e("LOG", "Newest location; ${lr.locations.last()}")
+        }
+    }
+
+//    val locationTrackingService = LocationTrackingService::class.java
+//    val intent = Intent(context, locationTrackingService)
+
+    /**
+     * Toggles location service on and of?
+     */
     private fun onEditButton(btn: ImageButton) {
         //btn.isEnabled = !btn.isEnabled
         if (btn.alpha == 0.5f) {
             btn.alpha = 1.0f
             pathEditEnabled = true
+
+            LocationTrackingService.startService(requireContext(), callback = { onLocationChangeFromService(it) })
         } else {
             btn.alpha = 0.5f
             pathEditEnabled = false
+
+            LocationTrackingService.stopService(requireContext())
         }
 
     }
+
+    /**
+     * Call from LocationTrackingService with new location.
+     * Add new location to end of path.
+     *
+     * @param location
+     */
+    fun onLocationChangeFromService(location: Location)  {
+        Log.e("LOG", "onLocationChangeFromService")
+        Log.e("Log", location.toString())
+        //return latitude
+    }
+
+
+
+    fun getLocationUpdate() {
+        val REQUEST_CHECK_STATE = 12300
+        val builder = LocationSettingsRequest.Builder()
+            .addLocationRequest(regSetting)
+
+        val client = LocationServices.getSettingsClient(requireActivity())
+        client.checkLocationSettings(builder.build()).addOnCompleteListener { task ->
+            try {
+//                if (task.result is LocationSettingsResponse) {
+//                    var state = task.result.locationSettingsStates
+//                }
+                var state: LocationSettingsStates = task.result!!.locationSettingsStates
+                Log.e("LOG", "LocationSettings: \n" +
+                "GPS present: ${state.isGpsPresent} \n" +
+                "GPS usable: ${state.isGpsUsable}"
+                )
+            } catch (e: RuntimeException) {
+                if (e.cause is ResolvableApiException) {
+                    Log.e("LOG", e.toString())
+                }
+//                   (e.cause as ResolvableApiException).startResolutionForResult(
+//                        this@MainActivity,
+//                        REQUEST_CHECK_STATE
+//                   )
+            }
+        }
+    }
+
+
+    fun onLocationChange(location: Location) {
+        println(location.toString())
+    }
+
+
 
     /**
      * Remove first point in selected Marker list

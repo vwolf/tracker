@@ -13,4 +13,7 @@
 
     <string name="track_distance">Track Distance</string>
     <string name="track_elevation">Track Elevation</string>
+
+    <string name="trackrecording_header">Start recording</string>
+    <string name="trackrecording_btn_start">Start</string>
 </resources>

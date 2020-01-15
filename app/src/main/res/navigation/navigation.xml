@@ -15,6 +15,9 @@
         <action
             android:id="@+id/action_mainFragment_to_trackListFragment"
             app:destination="@id/trackListFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_trackRecordingFragment"
+            app:destination="@id/trackRecordingFragment" />
     </fragment>
     <fragment
         android:id="@+id/newTrackFragment"
@@ -43,5 +46,14 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim"
             app:popUpTo="@+id/trackListFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/trackRecordingFragment"
+        android:name="com.e.tracker.track.TrackRecordingFragment"
+        android:label="fragment_track_recording"
+        tools:layout="@layout/fragment_track_recording" >
+        <action
+            android:id="@+id/action_trackRecordingFragment_to_mainFragment"
+            app:destination="@id/mainFragment" />
     </fragment>
 </navigation>

@@ -7,8 +7,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
-
-
 const val PERMISSIONS_REQUEST_INTERNET = 100
 const val PERMISSIONS_REQUEST_ACCESS_NETWORK_STATE = 101
 
@@ -53,6 +51,9 @@ class Permissions(val context: Context, val activity: AppCompatActivity) :  Acti
     }
 
 
+    fun requestAccessFineLocationPermission() {
+
+    }
     /**
      * Request multiply permissions
      *

@@ -63,7 +63,7 @@ class MainFragment : Fragment() {
         }
 
         binding.buttonStart.setOnClickListener { view: View ->
-
+            view.findNavController().navigate(R.id.action_mainFragment_to_trackRecordingFragment)
         }
         return binding.root
     }

@@ -1,6 +1,8 @@
 package com.e.tracker.osm
 
 import android.app.Activity
+import android.app.ActivityManager
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
@@ -11,6 +13,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import com.e.tracker.R
 import com.e.tracker.Support.OsmMapType
@@ -269,4 +272,5 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
         return false
         //return super.onOptionsItemSelected(item)
     }
+
 }

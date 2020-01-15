@@ -161,7 +161,7 @@ class NewTrackFragment : Fragment() {
         startCoordinates.put("longitude", track_longitude.text)
         newTrack.startCoordinates = startCoordinates.toString()
 
-        binding.newTrackViewModel?.insertNewTrack(newTrack)
+        binding.newTrackViewModel?.insertNewTrack(newTrack, res = { newTrackInsert(it) } )
     }
 
 
@@ -204,8 +204,14 @@ class NewTrackFragment : Fragment() {
                     this.track_description.setText(addressReturned)
                 }
 
-
             }
         }
     }
+
+    /**
+     * Return from new track insert
+     *
+     * @param result id of new track insert
+     */
+    fun newTrackInsert(result: Long) {}
 }

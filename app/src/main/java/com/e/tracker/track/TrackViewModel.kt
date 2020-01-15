@@ -45,7 +45,7 @@ class TrackViewModel (
      *
      * @param track
      */
-    private suspend fun insert(track: TrackModel) {
+    private suspend fun insert(track: TrackModel, res: (l: Long) -> Unit) {
         var trackCoordModel = TrackCoordModel()
         trackCoordModel.latitude = track.latitude
         trackCoordModel.longitude = track.longitude
@@ -55,7 +55,9 @@ class TrackViewModel (
             val trackId = database.insert(track)
 
             trackCoordModel.track = trackId
-            coordSource.insert(trackCoordModel)
+            val coordId = coordSource.insert(trackCoordModel)
+
+            res(trackId)
         }
     }
 
@@ -108,8 +110,8 @@ class TrackViewModel (
     }
 
 
-    fun insertNewTrack(newTrack: TrackModel) {
-        uiScope.launch { insert(newTrack) }
+    fun insertNewTrack(newTrack: TrackModel, res: (l: Long) -> Unit) {
+        uiScope.launch { insert(newTrack, res) }
     }
 
 
