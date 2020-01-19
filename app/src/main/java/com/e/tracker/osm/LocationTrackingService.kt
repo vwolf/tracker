@@ -13,11 +13,14 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-//import androidx.core.content.ContextCompat.getSystemService
 import com.e.tracker.MainActivity
 import java.lang.Exception
 
 
+/**
+ * Switch location tracking on/off using a Foreground Service
+ *
+ */
 class LocationTrackingService : Service() {
     private val TAG = "LocationTrackingService"
     private var notification : Notification? = null
@@ -36,6 +39,7 @@ class LocationTrackingService : Service() {
         startForeground(1, defaultNotification(applicationContext))
         return START_STICKY
     }
+
 
     override fun onCreate() {
         super.onCreate()
@@ -146,7 +150,8 @@ class LocationTrackingService : Service() {
             }
         }
 
-        class LTRLocationListener(provider: String) : android.location.LocationListener {
+
+        class LTRLocationListener(provider: String) : LocationListener {
             val lastLocation = Location(provider)
 
             override fun onLocationChanged(location: Location?) {

@@ -68,6 +68,14 @@
                 android:contentDescription="@string/map_toolbar_add"
                 android:src="@drawable/ic_open_with_black_24dp" />
 
+            <ImageButton
+                android:id="@+id/map_toolbar_btn_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="#03FFFFFF"
+                android:src="@drawable/ic_insert_comment_black_24dp" />
+
         </LinearLayout>
 
         <LinearLayout

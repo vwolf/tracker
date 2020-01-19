@@ -23,6 +23,7 @@ import com.e.tracker.track.TrackSourceType
 import com.e.tracker.xml.gpx.GPXParser
 import com.e.tracker.xml.gpx.domain.Gpx
 import com.e.tracker.xml.gpx.domain.Track
+import com.e.tracker.xml.gpx.domain.TrackSegment
 import com.e.tracker.xml.gpx.domain.WayPoint
 import kotlinx.coroutines.*
 import org.osmdroid.util.GeoPoint
@@ -201,16 +202,36 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
         }
 
         trackObject.id = 0
-        // parse coords
-        for (p in parsedGpx.wayPoints) {
-            if (p is WayPoint) {
-                val c = TrackCoordModel()
-                c.latitude = p.latitude
-                c.longitude = p.longitude
-                c.altitude = p.elevation
+        // parse coords, points can be in waypoints or in tracks[i]
+        if (parsedGpx.wayPoints.isNotEmpty()) {
+            for (p in parsedGpx.wayPoints) {
+                if (p is WayPoint) {
+                    val c = TrackCoordModel()
+                    c.latitude = p.latitude
+                    c.longitude = p.longitude
+                    c.altitude = p.elevation
 
-                trackObject.coords.add(c)
-                trackObject.coordsGpx.add(GeoPoint(c.latitude ?: 0.0, c.longitude ?: 0.0))
+                    trackObject.coords.add(c)
+                    trackObject.coordsGpx.add(GeoPoint(c.latitude ?: 0.0, c.longitude ?: 0.0))
+                }
+            }
+        } else {
+            if (parsedGpx.tracks.isNotEmpty()) {
+                // for the moment, use only track 1
+                val t = parsedGpx.tracks.first()
+                val ts = t.trackSegments
+                val firstTrack = ts[0] as TrackSegment
+                if (firstTrack is TrackSegment) {
+                    for (p in firstTrack.trackPoints) {
+                        val c = TrackCoordModel()
+                        c.latitude = p.latitude
+                        c.longitude = p.longitude
+                        c.altitude = p.elevation
+
+                        trackObject.coords.add(c)
+                        trackObject.coordsGpx.add(GeoPoint(c.latitude ?: 0.0, c.longitude ?: 0.0))
+                    }
+                }
             }
         }
 

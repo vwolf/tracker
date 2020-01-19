@@ -34,12 +34,14 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.mapsforge.map.layer.download.tilesource.TileSource
 import org.osmdroid.bonuspack.routing.OSRMRoadManager
 import org.osmdroid.bonuspack.routing.RoadManager
 import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.events.MapListener
 import org.osmdroid.events.ScrollEvent
 import org.osmdroid.events.ZoomEvent
+import org.osmdroid.tileprovider.tilesource.ITileSource
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.*
 import org.osmdroid.views.MapView
@@ -104,7 +106,8 @@ class FragmentOsmMap : Fragment() {
         )
 
         org.osmdroid.config.Configuration.getInstance()
-            .setUserAgentValue(this.context!!.packageName)
+            .userAgentValue = this.context!!.packageName
+            //.setUserAgentValue(this.context!!.packageName)
 
 
         binding.map.setUseDataConnection(true)
@@ -114,6 +117,7 @@ class FragmentOsmMap : Fragment() {
         //binding.map.controller.setCenter(GeoPoint(52.4908, 13.4186))
         binding.map.controller.setCenter(GeoPoint(trackObject.latitude, trackObject.longitude))
 
+        
 
         pathM.observe(this, Observer { path = pathM.value!! })
 
@@ -170,7 +174,6 @@ class FragmentOsmMap : Fragment() {
 
         binding.map.overlays.add(mapEventsOverlay)
 
-
         setHasOptionsMenu(true)
 
         if (trackObject.trackSourceType == TrackSourceType.FILE) {
@@ -213,10 +216,14 @@ class FragmentOsmMap : Fragment() {
             binding.mapToolbarBtnMovePoint.setOnClickListener {
                 onMovePointButton(binding.mapToolbarBtnMovePoint)
             }
+
+            binding.mapToolbarBtnInfo.setOnClickListener {
+                onStaticPathInfo()
+            }
         }
 
         //fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext())
-
+        Log.i("LOG", "map tileSource: ${binding.map.tileProvider.tileSource}")
         return binding.root
     }
 
@@ -248,15 +255,22 @@ class FragmentOsmMap : Fragment() {
         super.onCreateOptionsMenu(menu, inflater)
     }
 
+
     /**
-     * This comes from activity
+     * This comes from activity, is touchUp event on map
      * Use it to update after scroll action
      * Update trackObject.coords, save to db ...
      *
      */
     fun receiveActionUP() {
-        println("ACTIONUP")
+
+        Log.i("LOG", "ACTIONUP map center: ${map.mapCenter}, center offset x: ${map.mapCenterOffsetX}")
+
+        // important for OnScroll(), makes sure to get right scroll event distance
+        map.controller.setCenter(map.mapCenter)
+
         if (scrollAction) {
+            Log.i("LOG", "receiveActionUp during scrollAction, selected marker path position: ${selectedMarkersPathPosition.first()}")
             scrollAction = false
             val pathIndex = selectedMarkersPathPosition.first()
             trackObject.coords[pathIndex].latitude = trackObject.coordsGpx[pathIndex].latitude
@@ -264,8 +278,12 @@ class FragmentOsmMap : Fragment() {
 
             // save changed coord
             trackObject.updateCoordPosition(trackObject.coords[pathIndex])
+        } else {
+            // deselect selected segment
 
         }
+        map.invalidate()
+
     }
 
     /**
@@ -279,18 +297,21 @@ class FragmentOsmMap : Fragment() {
     private var maplistener: MapListener = object : MapListener {
         @Override
         override fun onScroll(event: ScrollEvent?): Boolean {
-            println("Event x: ${event.toString()}")
+            //println("Event x: ${event.toString()}")
 
             if (!scrollAction) {
-                scrollAction = true
+                Log.i("LOG", "SelectedMarkers.size: ${selectedMarkers.size}")
                 selectedMarkerStartPos = selectedMarkers.first().position
                 selectedMarkerStartPosPixel = map.projection.toPixels(selectedMarkerStartPos, null)
-                Log.i("LOG", "Marker start position: $selectedMarkerStartPos")
+                Log.i("LOG", "Marker start position scrollAction: $selectedMarkerStartPos, posPixel: $selectedMarkerStartPosPixel")
+                scrollAction = true
             }
 
-            if (event != null) {
+            if (event != null && scrollAction) {
+                Log.i("LOG", "Scrollaction event consum with startPosPixel: $selectedMarkerStartPosPixel")
                 val smNewPositionX = selectedMarkerStartPosPixel.x + event.x
                 val smNewPositionY = selectedMarkerStartPosPixel.y + event.y
+                Log.i("Log", "new position: x: $smNewPositionX, y: $smNewPositionY")
                 val smNewPosition = map.projection.fromPixels(smNewPositionX, smNewPositionY)
                 selectedMarkers.first().position =
                     GeoPoint(smNewPosition.latitude, smNewPosition.longitude)
@@ -302,6 +323,7 @@ class FragmentOsmMap : Fragment() {
                     smNewPosition.latitude
                 trackObject.coordsGpx[selectedMarkersPathPosition.first()].longitude =
                     smNewPosition.longitude
+
                 updatePath(TrackActionType.MoveMarker)
             }
 
@@ -330,9 +352,12 @@ class FragmentOsmMap : Fragment() {
      */
     private fun addMapListener() {
         //val moveListener   = MapListener{}
-        selectedMarkers.first().isDraggable = true
-        map.addMapListener(maplistener)
+        if (selectedMarkers.isNotEmpty()) {
+            selectedMarkers.first().isDraggable = false
+            map.addMapListener(maplistener)
+        }
     }
+
 
     private fun removeMapListener() {
         map.removeMapListener(maplistener)
@@ -588,7 +613,11 @@ class FragmentOsmMap : Fragment() {
      * Set touched marker into selected state
      * Diable add point button
      *
+     * First point in path
+     * Last point in path: enable add to path through clicking on map
+     *
      * @param marker tapped marker, must be on overlay
+     * @param idx index in path
      */
     private fun clickOnMarker(marker: Marker, idx: Int): Boolean {
         println("clickOnMarker ${marker.position}, idx: $idx")
@@ -599,6 +628,15 @@ class FragmentOsmMap : Fragment() {
                 ContextCompat.getDrawable(requireContext(), R.drawable.ic_brightness_1_black_12dp)
             selectedMarkers.remove(marker)
             selectedMarkersPathPosition.remove(idx)
+            if (map_toolbar_btn_movePoint.isEnabled ) {
+                scrollAction = false
+                map_toolbar_btn_movePoint.isEnabled = false
+                map_toolbar_btn_movePoint.alpha = 0.5f
+                removeMapListener()
+                map_toolbar_btn_removePoint.isEnabled = false
+                map_toolbar_btn_removePoint.alpha = 0.5f
+                map.invalidate()
+            }
         } else {
             // only one marker can be selected
             if (selectedMarkers.isNotEmpty()) {
@@ -614,14 +652,28 @@ class FragmentOsmMap : Fragment() {
                 map_toolbar_btn_removePoint.isEnabled = false
             }
 
-            selectedMarkers.add(marker)
-            selectedMarkersPathPosition.add(idx)
-            marker.icon = ContextCompat.getDrawable(
-                requireContext(),
-                R.drawable.ic_brightness_1_black_12dp
-            )?.mutate()
-            marker.icon.setTint(ContextCompat.getColor(requireContext(), R.color.schema_one_red))
-            newMarkerSelected = true
+            // last point in path
+            if ( idx + 1 == trackObject.coordsGpx.size) {
+                Log.i("LOG", "Selected Marker is last in Path")
+                trackEndMarker()
+            } else {
+                selectedMarkers.add(marker)
+                selectedMarkersPathPosition.add(idx)
+                marker.icon = ContextCompat.getDrawable(
+                    requireContext(),
+                    R.drawable.ic_brightness_1_black_12dp
+                )?.mutate()
+                marker.icon.setTint(ContextCompat.getColor(requireContext(), R.color.schema_one_red))
+                newMarkerSelected = true
+
+                Toast.makeText(
+                    context,
+                    "Marker id: ${trackObject.coords[selectedMarkersPathPosition.first()].id}, \n path position: ${selectedMarkersPathPosition.first()}",
+                    Toast.LENGTH_LONG
+                ).show()
+
+            }
+
         }
 
 
