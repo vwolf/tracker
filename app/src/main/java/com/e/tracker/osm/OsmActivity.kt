@@ -12,6 +12,7 @@ import android.view.MenuItem
 import android.view.MotionEvent
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
 import com.e.tracker.R
 import com.e.tracker.Support.OsmMapType
 import com.e.tracker.Support.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION
@@ -19,10 +20,10 @@ import com.e.tracker.database.*
 import com.e.tracker.track.TrackObject
 import com.e.tracker.track.TrackSourceType
 import com.e.tracker.xml.gpx.GPXParser
-import com.e.tracker.xml.gpx.domain.Gpx
 import com.e.tracker.xml.gpx.domain.TrackSegment
 import com.e.tracker.xml.gpx.domain.WayPoint
 import com.e.tracker.Support.Permissions
+import com.e.tracker.osm.dialogs.OsmBottomSheet
 import kotlinx.coroutines.*
 import org.osmdroid.util.GeoPoint
 import java.io.File
@@ -30,9 +31,19 @@ import java.io.File
 
 const val OSM_LOG = "OSM"
 
-class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogListener  {
+/**
+ * OsmBottomSheets: waypoint_new_bottom_sheet, waypoint_bottom_sheet, map_bottom_sheet
+ * Implement FragmentOsmMap.OsmBottomSheet interface
+ * Implement OsmBottomSheet.OsmDialogListener interface to receive event callbacks
+ *
+ */
+class OsmActivity : AppCompatActivity(),
+    AdressesDialogFragment.NoticeDialogListener,
+    WayPointNewBottomSheetDialog.ItemClickListener,
+    FragmentOsmMap.OsmBottomSheet,
+    OsmBottomSheet.OsmDialogListener {
 
-
+    // db connections
     private val trackSource : TrackDatabaseDao
         get() = TrackDatabase.getInstance(application).trackDatabaseDao
     private val coordsSource : TrackCoordDatabaseDao
@@ -103,6 +114,11 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
 
     }
 
+    override fun onAttachFragment(fragment: Fragment) {
+        if( fragment is FragmentOsmMap) {
+            fragment.setOnOpenDialogListener(this)
+        }
+    }
 
     /**
      * Dispatch MotionEvent.ACTION_UP to map for map scroll
@@ -313,4 +329,53 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
         //return super.onOptionsItemSelected(item)
     }
 
+    /////////////// BottomSheetDialog //////////////////////////
+
+    /**
+     * Open a BottomSheetDialogFragment
+     *
+     * @param layoutResource res.layout file
+     */
+    override fun openOsmBottomSheet(layoutResource: String) {
+        Log.i(OSM_LOG, "openOsmBottomSheet layout $layoutResource")
+        when(layoutResource) {
+            "NewWayPoint" -> {
+                val dialog = OsmBottomSheet.getInstance(
+                    R.layout.waypoint_new_bottom_sheet,
+                    layoutResource
+                )
+                dialog.show(supportFragmentManager, dialog.tag)
+            }
+        }
+    }
+
+    override fun openOsmBottomSheetWithContent(layoutResource: String, wp: TrackWayPointModel) {
+        Log.i(OSM_LOG, "openOsmBottomSheet layout $layoutResource")
+        when (layoutResource) {
+            "WayPoint" -> {
+                val dialog = OsmBottomSheet.getInstance(
+                    R.layout.waypoint_bottom_sheet,
+                    layoutResource,
+                    wp
+                )
+                dialog.show(supportFragmentManager, dialog.tag)
+            }
+        }
+    }
+
+
+    /**
+     * OsmBottomSheet call
+     *
+     * @param item
+     */
+    override fun onItemClick(item: String) {
+        Log.i(OSM_LOG, "FragmentOsmMap.onItemClick $item")
+        mapFragment.onItemClick(item)
+    }
+
+    override fun onSaveWaypoint(waypoint: TrackWayPointModel) {
+        Log.i(OSM_LOG, "OsmActivity.onSaveWaypoint")
+        trackObject.addWayPoint(waypoint)
+    }
 }

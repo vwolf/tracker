@@ -111,7 +111,6 @@ class FragmentOsmMap : Fragment() {
     //var fusedLocationProviderClient: FusedLocationProviderClient? = null
 
 
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -344,12 +343,13 @@ class FragmentOsmMap : Fragment() {
             wpMarker.setOnMarkerClickListener { marker, mapView ->
                 Log.i(OSM_LOG, "onClickListener for waypoint id: ${wp.pointId}")
 
-                val dialog = WayPointBottomSheetDialog.getInstance(
-                    wp,
-                    {wayPointAction("Edit")},
-                    {wayPointAction("Delete")}
-                )
-                dialog.show(requireFragmentManager(), WayPointBottomSheetDialog::class.java.simpleName)
+                osmBottomSheet?.openOsmBottomSheetWithContent("WayPoint", wp)
+//                val dialog = WayPointBottomSheetDialog.getInstance(
+//                    wp,
+//                    {wayPointAction("Edit")},
+//                    {wayPointAction("Delete")}
+//                )
+//                dialog.show(requireFragmentManager(), WayPointBottomSheetDialog::class.java.simpleName)
 
                 //marker.showInfoWindow()
                 true
@@ -1164,22 +1164,21 @@ class FragmentOsmMap : Fragment() {
 
 
     /**
-     * ToDo Open input form for new waypoint
+     *
      *
      */
     private fun onAddPathWayPoint() {
+        Log.i(OSM_LOG, "FragmentOsmMap onAddPathWayPoint()")
+//        val dialog = WayPointNewBottomSheetDialog.getInstance()
+//        dialog.show(requireFragmentManager(), WayPointNewBottomSheetDialog::class.java.simpleName)
+        if (trackObject.wayPoints.indexOfFirst { it.pointId == trackObject.coords[selectedMarkersPathPosition.first()].id} == -1) {
+            osmBottomSheet?.openOsmBottomSheet("NewWayPoint")
+        }
+    }
 
-        val dialog = WayPointNewBottomSheetDialog.getInstance()
-        dialog.show(requireFragmentManager(), WayPointNewBottomSheetDialog::class.java.simpleName)
 
-//        val pathPointId = trackObject.coords[selectedMarkersPathPosition.first()].id
-//        var wayPointModel = TrackWayPointModel(
-//            trackId = trackObject.id,
-//            type = "wayPoint",
-//            wayPointName = "wayPointName",
-//            pointId = pathPointId )
-//
-//        trackObject.addWayPoint(wayPointModel)
+    fun onItemClick(item: String) {
+        Log.i(OSM_LOG, "FragmentOsmMap.onItemClick $item")
     }
 
 
@@ -1205,45 +1204,11 @@ class FragmentOsmMap : Fragment() {
 
     /**
      * Set state of toolbar button add depending situation
-     * Path start marker uid: StartOfPath
-     * Path end marker uid: EndOfPath
      *
-     *
+     * @param state
+     * @param id
+     * @param marker
      */
-    fun setAddButtonState(state: Boolean?, uid: String?, item: OverlayItem?): Boolean {
-
-        // if state parameter then set
-        if (state != null) {
-            map_toolbar_btn_addPoint.isEnabled = state
-
-            if (state == true) {
-                map_toolbar_btn_addPoint.alpha = 1.0f
-            } else {
-                map_toolbar_btn_addPoint.alpha = 0.5f
-            }
-            return true
-        }
-
-        // no state requested, toogle state of add button
-        // close any marker dialogs, are there any properties in ItemizedOverlayWithFocus which i can use?
-        val dialogItem =
-            map.overlayManager.first { it is ItemizedOverlayWithFocus<*> } as ItemizedOverlayWithFocus<*>
-        dialogItem.unSetFocusedItem()
-
-        map_toolbar_btn_addPoint.isEnabled = !map_toolbar_btn_addPoint.isEnabled
-        if (map_toolbar_btn_addPoint.isEnabled) {
-            map_toolbar_btn_addPoint.alpha = 1.0f
-            activeMarkerUid = uid
-            //activeMarker = item
-        } else {
-            map_toolbar_btn_addPoint.alpha = 0.5f
-            activeMarkerUid = null
-        }
-
-        return false
-    }
-
-
     private fun setAddButtonState(state: Boolean?, id: String, marker: Marker): Boolean {
         // if state parameter then set
         if (state != null) {
@@ -1321,6 +1286,22 @@ class FragmentOsmMap : Fragment() {
         for (i in 0..address.maxAddressLineIndex) {
             println("address line: ${address.getAddressLine(i)}")
         }
+    }
+
+    //////////// INTERFACES ////////////////////////////
+
+    internal var osmBottomSheet: OsmBottomSheet? = null
+
+    fun setOnOpenDialogListener(osmBottomSheet: OsmBottomSheet) {
+        this.osmBottomSheet = osmBottomSheet
+    }
+
+    /**
+     * implement this interface in Activity, parent Fragment or test implentation
+     */
+    interface OsmBottomSheet {
+        fun openOsmBottomSheet(layoutResource: String)
+        fun openOsmBottomSheetWithContent(layoutResource: String, wp: TrackWayPointModel)
     }
 }
 
