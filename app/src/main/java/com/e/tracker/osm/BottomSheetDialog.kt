@@ -6,19 +6,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import android.widget.TextView
-import android.widget.Toolbar
 import com.e.tracker.R
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import kotlinx.android.synthetic.main.map_bottom_sheet.*
 
 
-class MapBottomSheetDialog(val trackDistance: String, val trackElevation: String, val cb: () -> Unit ) : BottomSheetDialogFragment() {
+class MapBottomSheetDialog(
+    val trackDistance: String,
+    val trackElevation: String,
+    val cb: () -> Unit ) : BottomSheetDialogFragment() {
 
-    private lateinit var toolbar: Toolbar
+    //private lateinit var toolbar: Toolbar
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return (super.onCreateDialog(savedInstanceState) as BottomSheetDialog).apply {

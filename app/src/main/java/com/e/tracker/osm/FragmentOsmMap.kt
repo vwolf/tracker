@@ -1,9 +1,7 @@
 package com.e.tracker.osm
 
-import android.app.Activity
-import android.app.ActivityManager
+
 import android.content.Context
-import android.content.Intent
 import android.graphics.Point
 import android.location.Address
 import android.location.Geocoder
@@ -16,39 +14,42 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.e.tracker.R
+import com.e.tracker.database.TrackWayPointModel
 import com.e.tracker.databinding.FragmentOsmMapBinding
 import com.e.tracker.track.TrackActionType
+import com.e.tracker.track.TrackMarkerType
 import com.e.tracker.track.TrackObject
 import com.e.tracker.track.TrackSourceType
-import com.e.tracker.osm.OSMPathUtils
-import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.*
 import kotlinx.android.synthetic.main.fragment_osm_map.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.mapsforge.map.layer.download.tilesource.TileSource
 import org.osmdroid.bonuspack.routing.OSRMRoadManager
 import org.osmdroid.bonuspack.routing.RoadManager
 import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.events.MapListener
 import org.osmdroid.events.ScrollEvent
 import org.osmdroid.events.ZoomEvent
-import org.osmdroid.tileprovider.tilesource.ITileSource
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.*
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.*
-import java.lang.RuntimeException
+import kotlin.reflect.KProperty
 
 
+//var Marker.type: String = ""
+//    get() = "o"
+//    set(value) {
+//
+//    }
+    //get() = this.type
+    //set(value) {  type = value}
 
 /**
  * Fragment with OpenStreetMap
@@ -62,6 +63,9 @@ import java.lang.RuntimeException
  * Add button: active: add point in selected path segment
  * Remove button: active: remove selected point
  *
+ * ToDo Update of path start and end marker
+ * ToDo Move start marker icon when moveable action
+ * ToDo Make end marker moveable
  */
 class FragmentOsmMap : Fragment() {
 
@@ -71,6 +75,17 @@ class FragmentOsmMap : Fragment() {
     private val pathM: MutableLiveData<Polyline> = MutableLiveData(path)
 
     private var pathEditEnabled = false
+    lateinit var mapEventsOverlay: MapEventsOverlay
+
+    // Marker extension with FieldProperty to act as binding field
+    // Should be implemented as hashtable
+    // https://github.com/h0tk3y/kotlin-fun/blob/master/src/main/java/com/github/h0tk3y/kotlinFun/util/WeakIdentityHashMap.java
+    var Marker.type: TrackMarkerType by FieldProperty { TrackMarkerType.UNDEFINED }
+
+    // keep markers
+//    var markerList = mutableMapOf<String, Marker>()
+//    var markerSet = mutableSetOf<Marker>()
+
     //private var pathPointRemoveEnabled = false
 
 //    private var projectedPoints: LongArray = longArrayOf()
@@ -95,6 +110,8 @@ class FragmentOsmMap : Fragment() {
 
     //var fusedLocationProviderClient: FusedLocationProviderClient? = null
 
+
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -117,60 +134,9 @@ class FragmentOsmMap : Fragment() {
         //binding.map.controller.setCenter(GeoPoint(52.4908, 13.4186))
         binding.map.controller.setCenter(GeoPoint(trackObject.latitude, trackObject.longitude))
 
-        
-
         pathM.observe(this, Observer { path = pathM.value!! })
 
-        // get tap location using MapEventsOverlay
-        val mapEventsOverlay = MapEventsOverlay(object : MapEventsReceiver {
-            //val p : GeoPoint = GeoPoint(13.78, 52.12)
-            override fun singleTapConfirmedHelper(p: GeoPoint): Boolean {
-                println("MapView Tap ${p.latitude}  ${p.longitude}")
-                when (trackObject.type) {
-                    TrackSourceType.DATABASE -> {
-                        // close any marker dialogs, are there any properties in ItemizedOverlayWithFocus which i can use?
-//                        var item = map.overlayManager.first { it is ItemizedOverlayWithFocus<*> } as ItemizedOverlayWithFocus<*>
-//                        item.unSetFocusedItem()
-
-                        when (activeMarker?.id) {
-                            "track_end" -> {
-                                trackObject.addCoord(
-                                    geoPoint = p,
-                                    res = { updatePath(TrackActionType.AddAtEnd) })
-                                path.addPoint(p)
-                                activeMarker?.position = p
-                            }
-                            "track_start" -> {
-                                println("Add at track_start coordsGpx.size: ${trackObject.coordsGpx.size}")
-                                trackObject.addCoord(
-                                    geoPoint = p,
-                                    position = 1,
-                                    res = { updatePath(TrackActionType.AddAtStart) })
-                                activeMarker?.position = p
-
-                            }
-                        }
-
-                        map.invalidate()
-                        return true
-                    }
-                    TrackSourceType.FILE -> {
-                    }
-                    TrackSourceType.NEW -> {
-                        this@FragmentOsmMap.getLocationForTap(p)
-                        return true
-                    }
-                }
-                return false
-            }
-
-            override fun longPressHelper(p: GeoPoint): Boolean {
-                println("MapView LongTap ${p.latitude}, ${p.longitude}")
-                return true
-            }
-
-        })
-
+        attachEventsOverlay()
 
         binding.map.overlays.add(mapEventsOverlay)
 
@@ -192,35 +158,46 @@ class FragmentOsmMap : Fragment() {
             binding.mapToolbar.visibility = View.VISIBLE
             binding.mapStaticToolbar.visibility = View.INVISIBLE
 
-            binding.mapToolbarBtnEdit.alpha = 0.5f
-            binding.mapToolbarBtnAddPoint.alpha = 0.5f
-            binding.mapToolbarBtnAddPoint.isEnabled = false
-            binding.mapToolbarBtnRemovePoint.alpha = 0.5f
-            binding.mapToolbarBtnRemovePoint.isEnabled = false
-            binding.mapToolbarBtnMovePoint.alpha = 0.5f
-
-            binding.mapToolbarBtnMovePoint.isEnabled = false
-
-            binding.mapToolbarBtnEdit.setOnClickListener {
-                onEditButton(binding.mapToolbarBtnEdit)
+            // button gps on/off
+            binding.mapToolbarBtnGps.alpha = 0.5f
+            binding.mapToolbarBtnGps.setOnClickListener {
+                onEditButton(binding.mapToolbarBtnGps)
             }
 
+            // button add point to path
+            binding.mapToolbarBtnAddPoint.alpha = 0.5f
+            binding.mapToolbarBtnAddPoint.isEnabled = false
             binding.mapToolbarBtnAddPoint.setOnClickListener {
                 onAddPointButton(binding.mapToolbarBtnAddPoint)
             }
 
+            // button remove point from path
+            binding.mapToolbarBtnRemovePoint.alpha = 0.5f
+            binding.mapToolbarBtnRemovePoint.isEnabled = false
             binding.mapToolbarBtnRemovePoint.setOnClickListener {
                 onRemoveButton(binding.mapToolbarBtnRemovePoint)
             }
 
+            // button move point in path on/off
+            binding.mapToolbarBtnMovePoint.alpha = 0.5f
+            binding.mapToolbarBtnMovePoint.isEnabled = false
             binding.mapToolbarBtnMovePoint.setOnClickListener {
                 onMovePointButton(binding.mapToolbarBtnMovePoint)
             }
 
+            // button show path/track info
             binding.mapToolbarBtnInfo.setOnClickListener {
                 onStaticPathInfo()
             }
+
+            // button add a waypoint item to path point
+            binding.mapToolbarBtnAddItem.alpha = 0.5f
+            binding.mapToolbarBtnAddItem.isEnabled = false
+            binding.mapToolbarBtnAddItem.setOnClickListener {
+                onAddPathWayPoint()
+            }
         }
+
 
         //fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext())
         Log.i("LOG", "map tileSource: ${binding.map.tileProvider.tileSource}")
@@ -255,6 +232,154 @@ class FragmentOsmMap : Fragment() {
         super.onCreateOptionsMenu(menu, inflater)
     }
 
+    /**
+     * Attach a MapEventsOverlay to map
+     * Get events from map
+     *
+     *
+     */
+    private fun attachEventsOverlay() {
+        mapEventsOverlay = MapEventsOverlay(object : MapEventsReceiver {
+
+            override fun singleTapConfirmedHelper(p: GeoPoint): Boolean {
+                Log.i(OSM_LOG, "MapView Tap ${p.latitude}  ${p.longitude}")
+                when (trackObject.trackSourceType) {
+                    TrackSourceType.DATABASE -> {
+                        when (activeMarker?.type) {
+                            TrackMarkerType.START -> {
+                                Log.i(OSM_LOG, "singleTap on mapEventsOverlay, ${activeMarker?.type}")
+                                trackObject.addCoord(
+                                    geoPoint = p,
+                                    position = 1,
+                                    res = { updatePath(TrackActionType.AddAtStart) })
+                                activeMarker?.position = p
+                                map.invalidate()
+                            }
+
+                            TrackMarkerType.END -> {
+                                Log.i(OSM_LOG, "singleTap on mapEventsOverlay, ${activeMarker?.type}")
+                                trackObject.addCoord(
+                                    geoPoint = p,
+                                    res = { updatePath(TrackActionType.AddAtEnd) })
+                                path.addPoint(p)
+                                activeMarker?.position = p
+                                map.invalidate()
+                            }
+
+                            TrackMarkerType.POINT -> {
+                                Log.i(OSM_LOG, "singleTap on mapEventsOverlay, ${activeMarker?.type}")
+                            }
+
+                            TrackMarkerType.UNDEFINED -> {
+                                Log.i(OSM_LOG, "singleTap on mapEventsOverlay, ${activeMarker?.type}")
+                            }
+
+                            TrackMarkerType.POINTSELECTED -> {
+                                Log.i(OSM_LOG, "singleTap on mapEventsOverlay, ${activeMarker?.type}")
+                                // srollAction? (move point)
+                                if (scrollAction) {
+
+                                }
+                            }
+
+                            else -> {
+                                // no activeMarker, segment selected then deselect
+                                if (selectedSegment > -1) {
+                                    unSelectSegment()
+                                    map.invalidate()
+                                }
+                            }
+                        }
+                    }
+
+                    TrackSourceType.FILE -> {}
+
+                    TrackSourceType.NEW -> {
+                        this@FragmentOsmMap.getLocationForTap(p)
+                        return true
+                    }
+
+                }
+                return true
+            }
+
+            override fun longPressHelper(p: GeoPoint): Boolean {
+                Log.i(OSM_LOG, "MapView LongTap ${p.latitude}, ${p.longitude}")
+                return true
+            }
+        })
+    }
+
+
+    fun showWayPoints(state: Boolean) {
+        Log.i(OSM_LOG, "showWayPoints state: $state")
+        if (state) {
+            showWayPoints()
+        } else {
+            hideWayPoints()
+        }
+    }
+
+    /**
+     * Put an icon on all waypoints
+     *
+     */
+    fun showWayPoints() {
+        Log.i(OSM_LOG, "showWayPoints")
+        val mIcon =
+            ContextCompat.getDrawable(requireContext(), R.drawable.ic_explore_black_24dp)
+                ?.mutate()
+        mIcon?.setTint(ContextCompat.getColor(requireContext(), R.color.schema_one_green))
+
+        for( wp in trackObject.wayPoints) {
+
+            val wpMarker = Marker(map)
+            wpMarker.position = trackObject.coordsGpx[wp.pointId.toInt() - 1]
+            wpMarker.setAnchor(0.5f, 0.5f)
+            wpMarker.title = wp.wayPointName
+            wpMarker.isDraggable = false
+            wpMarker.id = "waypoint"
+            wpMarker.icon = mIcon
+
+            wpMarker.setOnMarkerClickListener { marker, mapView ->
+                Log.i(OSM_LOG, "onClickListener for waypoint id: ${wp.pointId}")
+
+                val dialog = WayPointBottomSheetDialog.getInstance(
+                    wp,
+                    {wayPointAction("Edit")},
+                    {wayPointAction("Delete")}
+                )
+                dialog.show(requireFragmentManager(), WayPointBottomSheetDialog::class.java.simpleName)
+
+                //marker.showInfoWindow()
+                true
+            }
+
+            wpMarker.type = TrackMarkerType.WAYPOINT
+            map.overlays.add(wpMarker)
+        }
+
+        map.invalidate()
+    }
+
+
+    fun hideWayPoints() {
+        Log.i(OSM_LOG, "hideWayPoints")
+        removeMarkersOfType( TrackMarkerType.WAYPOINT )
+        map.invalidate()
+    }
+
+
+    /**
+     * Return from waypoint bottomsheet
+     *
+     * @param callback Edit or Delete
+     */
+    fun wayPointAction(callback: String) {
+        Log.i(OSM_LOG, "wayPointAction: $callback ")
+
+    }
+
 
     /**
      * This comes from activity, is touchUp event on map
@@ -280,6 +405,13 @@ class FragmentOsmMap : Fragment() {
             trackObject.updateCoordPosition(trackObject.coords[pathIndex])
         } else {
             // deselect selected segment
+            if(selectedSegment > -1 && selectedMarkers.isNotEmpty()) {
+                //unSelectSegment()
+            }
+
+            if (selectedSegment > -1) {
+                //unSelectSegment()
+            }
 
         }
         map.invalidate()
@@ -376,6 +508,9 @@ class FragmentOsmMap : Fragment() {
     }
 
 
+
+
+
     private fun trackStartMarker() {
 
         val mIcon =
@@ -390,16 +525,35 @@ class FragmentOsmMap : Fragment() {
         startMarker.id = "track_start"
         startMarker.icon = mIcon
         startMarker.setOnMarkerClickListener { marker, mapView ->
+            var toastText = marker.title.toString()
+            if (activeMarker == marker) {
+                setAddButtonState(false, marker.id, marker)
+                activeMarker = null
+                mIcon?.setTint(ContextCompat.getColor(requireContext(), R.color.schema_one_red))
+                map.invalidate()
+                toastText += " is not active."
+            } else {
+                if (activeMarker?.type == TrackMarkerType.END) {
+                    activeMarker?.icon?.setTint(ContextCompat.getColor(requireContext(), R.color.schema_one_red))
+                }
+                activeMarker = marker
+                setAddButtonState(true, marker.id, marker)
+                mIcon?.setTint(ContextCompat.getColor(requireContext(), R.color.schema_one_blue))
+                map.invalidate()
+                toastText += " is active. Touch on map to extend track."
+            }
+
             Toast.makeText(
                 context,
-                marker.title.toString() + " was clicked",
+                toastText,
                 Toast.LENGTH_LONG
             ).show()
-            activeMarker = marker
-            //setAddButtonState(true, marker.id, marker)
+
             //marker.showInfoWindow()
             true
         }
+
+        startMarker.type = TrackMarkerType.START
         map.overlays.add(startMarker)
     }
 
@@ -445,6 +599,7 @@ class FragmentOsmMap : Fragment() {
 
             true
         }
+        endMarker.type = TrackMarkerType.END
         map.overlays.add(endMarker)
 
     }
@@ -608,6 +763,46 @@ class FragmentOsmMap : Fragment() {
         selectedSegment = segmentIdx
     }
 
+    /**
+     *
+     */
+    private fun unSelectSegment() {
+       if (selectedSegment > -1) {
+           // map.overlayManager.removeAll { it is Marker }
+           removeMarkersOfType(TrackMarkerType.POINT)
+
+           selectedSegment = -1
+           selectedMarkers.clear()
+
+           map_toolbar_btn_addPoint.isEnabled = false
+           map_toolbar_btn_addPoint.alpha = 0.5f
+
+           map_toolbar_btn_removePoint.isEnabled = false
+           map_toolbar_btn_removePoint.alpha = 0.5f
+
+           map_toolbar_btn_addItem.isEnabled = false
+           map_toolbar_btn_addItem.alpha = 0.5f
+
+           map_toolbar_btn_movePoint.isEnabled = false
+           map_toolbar_btn_movePoint.alpha = 0.5f
+       }
+    }
+
+    /**
+     * Remove the markers of type TrackMarkerType
+     *
+     * @param markerType
+     */
+    private fun removeMarkersOfType( markerType: TrackMarkerType) {
+       for (m in map.overlays) {
+           if (m is Marker) {
+               if (m.type == markerType) {
+                   map.overlays.remove(m)
+               }
+           }
+       }
+    }
+
 
     /**
      * Set touched marker into selected state
@@ -655,7 +850,14 @@ class FragmentOsmMap : Fragment() {
             // last point in path
             if ( idx + 1 == trackObject.coordsGpx.size) {
                 Log.i("LOG", "Selected Marker is last in Path")
+                Toast.makeText(
+                    context,
+                    "Last point of path",
+                    Toast.LENGTH_LONG
+                ).show()
+                unSelectSegment()
                 trackEndMarker()
+                map.invalidate()
             } else {
                 selectedMarkers.add(marker)
                 selectedMarkersPathPosition.add(idx)
@@ -672,6 +874,15 @@ class FragmentOsmMap : Fragment() {
                     Toast.LENGTH_LONG
                 ).show()
 
+                // add item to point
+                map_toolbar_btn_addItem.alpha = 1.0f
+                map_toolbar_btn_addItem.isEnabled = true
+
+                // wayPoint item?
+                val wp =  trackObject.wayPoints.firstOrNull { (it.wayPointName.length < 0) }
+                if (wp != null) {
+
+                }
             }
 
         }
@@ -712,7 +923,15 @@ class FragmentOsmMap : Fragment() {
      */
     private fun addIconToPoints(points: List<GeoPoint>, pointIdx: List<Int>) {
 
-        map.overlayManager.removeAll { it is Marker }
+        //map.overlayManager.removeAll { it is Marker }
+
+        for (m in map.overlays) {
+            if (m is Marker) {
+                if (m.type == TrackMarkerType.POINT) {
+                    map.overlayManager.remove(m)
+                }
+            }
+        }
 
 //        println("icon.bounds: ${i?.bounds!!.right}")
 //        println("icon.intrinsicWidth: ${i.intrinsicWidth}")
@@ -729,12 +948,12 @@ class FragmentOsmMap : Fragment() {
             marker.icon.setTint(ContextCompat.getColor(requireContext(), R.color.schema_one_dark))
             //marker.icon.updateBounds(0, 0, i?.bounds!!.right, i?.bounds.bottom)
             marker.setInfoWindow(null)
-
+            marker.type = TrackMarkerType.POINT
 
             marker.setOnMarkerClickListener { marker: Marker, _: MapView ->
                 println("Click on Marker with index $pointIdx")
                 clickOnMarker(marker, pointIdx[index])
-                //true
+                true
             }
 
             map.overlays.add(marker)
@@ -794,7 +1013,7 @@ class FragmentOsmMap : Fragment() {
      *
      * @param location
      */
-    fun onLocationChangeFromService(location: Location)  {
+    private fun onLocationChangeFromService(location: Location)  {
         Log.e("LOG", "onLocationChangeFromService")
         Log.e("Log", location.toString())
         //return latitude
@@ -808,6 +1027,7 @@ class FragmentOsmMap : Fragment() {
     /**
      * Remove first point in selected Marker list
      * This button can enable it self?
+     * ToDo Update selected path segment and marker
      *
      * @param btn
      */
@@ -821,6 +1041,7 @@ class FragmentOsmMap : Fragment() {
                     markerPosition,
                     res = { updatePath(TrackActionType.RemoveSelected) })
             }
+            unSelectSegment()
         } else {
             if (btn.isEnabled) {
                 btn.alpha = 1.0f
@@ -891,10 +1112,11 @@ class FragmentOsmMap : Fragment() {
 
         val dialog = MapBottomSheetDialog.getInstance(
             pathDistanceString,
-            pathElevation.toString(),
-            { bottomSheetDismiss() })
+            pathElevation.toString()
+           )  { bottomSheetDismiss() }
         dialog.show(requireFragmentManager(), MapBottomSheetDialog::class.java.simpleName)
 
+        showWayPoints()
 //        Toast.makeText(
 //            context,
 //            "Track length is $pathDistance meter",
@@ -933,10 +1155,33 @@ class FragmentOsmMap : Fragment() {
 
         val dialog = MapBottomSheetDialog.getInstance(
             computedDistanceString,
-            pathDistanceToEndString,
-            { bottomSheetDismiss() })
+            pathDistanceToEndString
+            ) { bottomSheetDismiss() }
+
         dialog.show(requireFragmentManager(), MapBottomSheetDialog::class.java.simpleName)
+
     }
+
+
+    /**
+     * ToDo Open input form for new waypoint
+     *
+     */
+    private fun onAddPathWayPoint() {
+
+        val dialog = WayPointNewBottomSheetDialog.getInstance()
+        dialog.show(requireFragmentManager(), WayPointNewBottomSheetDialog::class.java.simpleName)
+
+//        val pathPointId = trackObject.coords[selectedMarkersPathPosition.first()].id
+//        var wayPointModel = TrackWayPointModel(
+//            trackId = trackObject.id,
+//            type = "wayPoint",
+//            wayPointName = "wayPointName",
+//            pointId = pathPointId )
+//
+//        trackObject.addWayPoint(wayPointModel)
+    }
+
 
     /**
      * BottomInfoSheet dismiss message
@@ -1395,3 +1640,19 @@ class FragmentOsmMap : Fragment() {
 //        ))
 //
 //        println("geoJson: $geoJson")
+
+class FieldProperty<R, T : Any>(
+    val initializer: (R) -> T = { throw IllegalStateException("Not initialized.") }
+    ) {
+
+    private val map = mutableMapOf<R,T>()
+
+    operator fun getValue(thisRef: R, property: KProperty<*>): T =
+        map[thisRef] ?: setValue(thisRef, property, initializer(thisRef))
+
+    operator fun setValue(thisRef: R, property: KProperty<*>, value: T): T {
+        map[thisRef] = value
+        return value
+    }
+}
+

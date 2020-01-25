@@ -3,10 +3,10 @@ package com.e.tracker.xml.gpx.domain
 
 
 class Bounds private constructor(builder: Builder) {
-    val minLat: Double?
-    val minLon: Double?
-    val maxLat: Double?
-    val maxLon: Double?
+    private val minLat: Double?
+    private val minLon: Double?
+    private val maxLat: Double?
+    private val maxLon: Double?
 
     class Builder {
         var mMinLat: Double? = null

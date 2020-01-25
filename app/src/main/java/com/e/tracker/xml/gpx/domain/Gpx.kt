@@ -3,9 +3,9 @@ package com.e.tracker.xml.gpx.domain
 import java.util.*
 
 class Gpx private constructor(builder: Builder) {
-    val version: String?
-    val creator: String?
-    val metadata: Metadata?
+    private val version: String?
+    private val creator: String?
+    private val metadata: Metadata?
 
     private val mWayPoints: List<WayPoint>
     private val mRoutes: List<Route>

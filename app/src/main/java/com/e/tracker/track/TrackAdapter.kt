@@ -12,8 +12,8 @@ import com.e.tracker.databinding.TrackListItemViewBinding
 
 
 class TrackAdapter(
-    val clickListener: TrackListener,
-    val editIconClickListener: (TrackModel) -> Unit) : RecyclerView.Adapter<TrackAdapter.ViewHolder>() {
+    private val clickListener: TrackListener,
+    private val editIconClickListener: (TrackModel) -> Unit) : RecyclerView.Adapter<TrackAdapter.ViewHolder>() {
 
 
 

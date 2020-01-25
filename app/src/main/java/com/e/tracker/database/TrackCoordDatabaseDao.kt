@@ -2,7 +2,6 @@ package com.e.tracker.database
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import com.e.tracker.xml.gpx.domain.Track
 
 @Dao
 interface TrackCoordDatabaseDao {

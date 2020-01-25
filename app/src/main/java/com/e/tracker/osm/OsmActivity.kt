@@ -1,50 +1,51 @@
 package com.e.tracker.osm
 
+import android.Manifest
 import android.app.Activity
-import android.app.ActivityManager
-import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
-import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.StrictMode
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.widget.Toast
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import com.e.tracker.R
 import com.e.tracker.Support.OsmMapType
+import com.e.tracker.Support.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION
 import com.e.tracker.database.*
 import com.e.tracker.track.TrackObject
 import com.e.tracker.track.TrackSourceType
 import com.e.tracker.xml.gpx.GPXParser
 import com.e.tracker.xml.gpx.domain.Gpx
-import com.e.tracker.xml.gpx.domain.Track
 import com.e.tracker.xml.gpx.domain.TrackSegment
 import com.e.tracker.xml.gpx.domain.WayPoint
+import com.e.tracker.Support.Permissions
 import kotlinx.coroutines.*
 import org.osmdroid.util.GeoPoint
 import java.io.File
 
 
-
+const val OSM_LOG = "OSM"
 
 class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogListener  {
 
 
-    val trackSource : TrackDatabaseDao
+    private val trackSource : TrackDatabaseDao
         get() = TrackDatabase.getInstance(application).trackDatabaseDao
-    val coordsSource : TrackCoordDatabaseDao
+    private val coordsSource : TrackCoordDatabaseDao
             get() = TrackDatabase.getInstance(application).trackCoordDatabaseDao
+    private val trackWayPointSource : TrackWayPointDao
+        get() = TrackDatabase.getInstance(application).trackWayPointDao
 
     private var osmActivityJob = Job()
     private var uiScope = CoroutineScope(Dispatchers.Main + osmActivityJob)
 
-    var trackObject = TrackObject()
-    var mapFragment: FragmentOsmMap = FragmentOsmMap()
+    private var trackObject = TrackObject()
+    private var mapFragment: FragmentOsmMap = FragmentOsmMap()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -55,18 +56,18 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
 
         setContentView(R.layout.activity_osm)
 
-        // track object init
+        // data sources for track object
         trackObject.coordsSource = coordsSource
+        trackObject.trackWayPointSource = trackWayPointSource
+
         mapFragment.trackObject = trackObject
 
-        var bundle = intent.extras
+        val bundle = intent.extras
 
-        val sourceType = bundle?.getString("TYPE")
-
-        when (sourceType) {
+        when (bundle?.getString("TYPE")) {
             "database" -> {
                 val id = intent.getLongExtra("ID", -1)
-                if (id > -1) {
+                if (id > 0) {
                     makeTrackFromDb(id)
                 }
                 trackObject.type = TrackSourceType.DATABASE
@@ -74,7 +75,7 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
             "file" -> {
                 trackObject.type = TrackSourceType.FILE
                 trackObject.trackSourceType = TrackSourceType.FILE
-                val filePath = bundle?.getString("PATH")
+                val filePath = bundle.getString("PATH")
                 if (filePath.isNullOrBlank()) {
                     Toast.makeText(this, "No track path!", Toast.LENGTH_SHORT).show()
                 } else {
@@ -84,6 +85,7 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
             }
             else -> {
                 trackObject.type = TrackSourceType.NEW
+                trackObject.trackSourceType = TrackSourceType.NEW
                 trackObject.latitude = 52.4908
                 trackObject.longitude = 13.4186
             }
@@ -91,14 +93,13 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
 
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        // osm map fragment
-        //mapFragment = FragmentOsmMap(trackObject)
 
         supportFragmentManager.beginTransaction()
             .add( R.id.container, mapFragment )
             .commit()
 
-        //this@OsmActivity.mapFragment.updateMap()
+        val gpsPermissions = arrayOf( Manifest.permission.ACCESS_FINE_LOCATION)
+        Permissions(applicationContext, this).requestPermissions(gpsPermissions, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION )
 
     }
 
@@ -110,8 +111,12 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
 
         if( ev?.action == MotionEvent.ACTION_UP) {
-            println("OsmActivity dispatchTouchEvent: ${ev.toString()}")
+            Log.i(OSM_LOG, "OsmActivity dispatchTouchEvent: $ev")
             this@OsmActivity.mapFragment.receiveActionUP()
+        }
+
+        if( ev?.action == MotionEvent.ACTION_DOWN) {
+
         }
         return super.dispatchTouchEvent(ev)
     }
@@ -127,13 +132,14 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
         }
     }
 
+
     /**
      * Set TrackObject values
      * Read coordinates for track from db.
      *
      * @param id
      */
-    fun makeTrackFromDb(id: Long) {
+    private fun makeTrackFromDb(id: Long) {
 
        // var trackObject = TrackObject()
 
@@ -154,6 +160,8 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
                     trackObject.coords.addAll(trackCoords)
                     this@OsmActivity.mapFragment.trackObject = trackObject
                     this@OsmActivity.mapFragment.updateMap()
+                    this@OsmActivity.mapFragment.trackObject.updateTrack()
+
                 }
             }
         }
@@ -189,10 +197,10 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
      *
      * @param path absolute path to .*gpx file
      */
-    fun makeTrackFromFile(path: String) {
-        var parsedGpx: Gpx
+    private fun makeTrackFromFile(path: String) {
+        //var parsedGpx: Gpx
         val inputStream = File(path).inputStream()
-        parsedGpx = GPXParser().parse(inputStream)
+        val parsedGpx = GPXParser().parse(inputStream)
 
         val tracks = parsedGpx.tracks
 
@@ -203,7 +211,7 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
 
         trackObject.id = 0
         // parse coords, points can be in waypoints or in tracks[i]
-        if (parsedGpx.wayPoints.isNotEmpty()) {
+       if (parsedGpx.wayPoints.isNotEmpty()) {
             for (p in parsedGpx.wayPoints) {
                 if (p is WayPoint) {
                     val c = TrackCoordModel()
@@ -239,7 +247,6 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
         trackObject.longitude = trackObject.coordsGpx.first().longitude
 
         this@OsmActivity.mapFragment.trackObject = trackObject
-        //this@OsmActivity.mapFragment.updateMap()
     }
 
 
@@ -248,14 +255,14 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
      * Return to NewTrackFragment
      *
      * @param dialog
-     * @param item address string
+     * @param result address string
      * @param geoPoint Coordinates of address on map
      */
-    override fun onDialogPositiveClick(dialog: DialogFragment, item: String, geoPoint: GeoPoint) {
-        println("Dialog positiveClick $item")
+    override fun onDialogPositiveClick(dialog: DialogFragment, result: String, geoPoint: GeoPoint) {
+        println("Dialog positiveClick $result")
         println("Dialog selected: ")
-        var data = Intent()
-        data.putExtra("addresskey", item)
+        val data = Intent()
+        data.putExtra("addresskey", result)
         data.putExtra("latitudekey", geoPoint.latitude)
         data.putExtra("longitudekey", geoPoint.longitude)
 
@@ -265,9 +272,10 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
 
 
     override fun onDialogNegativeClick(dialog: DialogFragment) {
-        println("Dialog negatieClick")
+        println("Dialog negativeClick")
     }
 
+    /////////////// OPTIONS MENU /////////////////////////////////
 
     // put the option on screen
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -281,6 +289,17 @@ class OsmActivity : AppCompatActivity(), AdressesDialogFragment.NoticeDialogList
         when (item.itemId) {
             R.id.menu_help -> {
                 println("Menu item Help selected")
+                return true
+            }
+
+            R.id.menu_showWaypoints -> {
+                if (item.isChecked ) {
+                    item.isChecked = false
+                    this@OsmActivity.mapFragment.showWayPoints( false )
+                } else {
+                    item.isChecked = true
+                    this@OsmActivity.mapFragment.showWayPoints( true)
+                }
                 return true
             }
 

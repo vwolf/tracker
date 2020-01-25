@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Tracker</string>
     <string name="menu_help">Help</string>
+    <string name="menu_wayPoint">Waypoints</string>
     <string name="track_name_hint">Name</string>
     <string name="track_description_hint">Description</string>
     <string name="track_location_hint">Location</string>
@@ -8,12 +9,21 @@
     <string name="track_latitude_hint">Latitude</string>
     <string name="track_longitude_hint">Longitude</string>
     <string name="track_button_submit">Submit</string>
+    <string name="track_button_edit">Edit</string>
     <string name="map_toolbar_edit">Edit path</string>
     <string name="map_toolbar_add">Add path point</string>
+
 
     <string name="track_distance">Track Distance</string>
     <string name="track_elevation">Track Elevation</string>
 
     <string name="trackrecording_header">Start recording</string>
     <string name="trackrecording_btn_start">Start</string>
+    <string name="waypoint_dialog_header">Waypoint header</string>
+    <string name="waypoint_dialog_text">Waypoint text</string>
+
+    <string name="tracker_edit">Edit</string>
+    <string name="tracker_delete">Delete</string>
+    <string name="tracker_save">Save</string>
+    <string name="tracker_cancel">Cancel</string>
 </resources>

@@ -1,9 +1,9 @@
 package com.e.tracker.xml.gpx.domain
 
 class Copyright private constructor(builder: Builder) {
-    val author: String?
-    val year: Int?
-    val license: String?
+    private val author: String?
+    private val year: Int?
+    private val license: String?
 
     class Builder {
         var mAuthor: String? = null

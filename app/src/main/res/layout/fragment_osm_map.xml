@@ -12,6 +12,7 @@
             android:id="@+id/map"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_marginTop="42dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -31,7 +32,7 @@
             tools:visibility="invisible">
 
             <ImageButton
-                android:id="@+id/map_toolbar_btn_edit"
+                android:id="@+id/map_toolbar_btn_gps"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
@@ -39,7 +40,7 @@
                 android:background="#03FFFFFF"
                 android:contentDescription="@string/map_toolbar_edit"
                 android:scaleType="center"
-                android:src="@drawable/ic_create_black_24dp" />
+                android:src="@drawable/ic_location_off_black_24dp" />
 
             <ImageButton
                 android:id="@+id/map_toolbar_btn_addPoint"
@@ -76,6 +77,14 @@
                 android:background="#03FFFFFF"
                 android:src="@drawable/ic_insert_comment_black_24dp" />
 
+            <ImageButton
+                android:id="@+id/map_toolbar_btn_addItem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="#03FFFFFF"
+                android:src="@drawable/ic_create_black_24dp" />
+
         </LinearLayout>
 
         <LinearLayout
@@ -105,5 +114,8 @@
                 android:background="#03FFFFFF"
                 android:src="@drawable/ic_insert_comment_black_24dp" />
         </LinearLayout>
+
+
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

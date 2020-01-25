@@ -3,12 +3,13 @@ package com.e.tracker.database
 import android.content.Context
 import androidx.room.*
 
-@Database(entities = [TrackModel::class, TrackCoordModel::class], version = 1, exportSchema = false)
+@Database(entities = [TrackModel::class, TrackCoordModel::class, TrackWayPointModel::class], version = 1, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class TrackDatabase : RoomDatabase() {
 
-    abstract  val trackDatabaseDao: TrackDatabaseDao
-    abstract  val trackCoordDatabaseDao: TrackCoordDatabaseDao
+    abstract val trackDatabaseDao: TrackDatabaseDao
+    abstract val trackCoordDatabaseDao: TrackCoordDatabaseDao
+    abstract val trackWayPointDao: TrackWayPointDao
 
     // The companion object allows clients to access the methods
     // for creating or getting the database without instantiating the class.

@@ -15,8 +15,8 @@ import java.lang.IllegalStateException
  *
  */
 class TrackEditDialogFragment(
-    var title: String,
-    var trackId: Long
+    private var title: String,
+    private var trackId: Long
 ) : DialogFragment() {
 
     companion object {
@@ -63,22 +63,21 @@ class TrackEditDialogFragment(
             }
 
             builder.setTitle(title)
-                .setSingleChoiceItems(items, selectedItem,
-                    DialogInterface.OnClickListener {
-                        dialog,
-                            which -> selectedItem = which
-                    })
-                .setPositiveButton("OK",
-                    DialogInterface.OnClickListener{
-                        dialog,
-                            id -> listener.onDialogPositiveClick(this,
+                .setSingleChoiceItems(
+                    items,
+                    selectedItem
+                ){ _, which -> selectedItem = which }
+
+                .setPositiveButton("OK")
+                    { _,
+                      _ -> listener.onDialogPositiveClick(this,
                         items[selectedItem], trackId)
-                    })
-                .setNegativeButton("Cancel",
-                    DialogInterface.OnClickListener {
-                            dialog,
-                            id -> listener.onDialogCancelClick(this)
-                    })
+                    }
+
+                .setNegativeButton("Cancel")
+                    { _,
+                      _ -> listener.onDialogCancelClick(this)
+                    }
 
 
             builder.create()

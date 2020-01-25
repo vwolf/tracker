@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.view.menu.MenuBuilder
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ObservableField
 import androidx.fragment.app.Fragment
@@ -78,7 +79,7 @@ class NewTrackFragment : Fragment() {
                     trackLoaded = loadedTrack
 
                     // Submit button
-                    binding.trackButtonSubmit.setText("Edit")
+                    binding.trackButtonSubmit.text = getString(R.string.track_button_edit)
                     binding.trackButtonSubmit.setOnClickListener {
                         editTrack(binding)
                         view?.findNavController()?.navigate(R.id.action_newTrackFragment_to_mainFragment)
@@ -213,5 +214,5 @@ class NewTrackFragment : Fragment() {
      *
      * @param result id of new track insert
      */
-    fun newTrackInsert(result: Long) {}
+    private fun newTrackInsert(result: Long) {}
 }

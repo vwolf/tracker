@@ -5,7 +5,7 @@ package com.e.tracker.xml.gpx.domain
  * Created by Stu Stirling on 04/10/2017.
  */
 class Link private constructor(builder: Builder) {
-    val href: String?
+    private val href: String?
     val text: String?
     val type: String?
 

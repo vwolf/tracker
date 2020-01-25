@@ -1,8 +1,9 @@
 package com.e.tracker.track
 
-import android.content.Context
-import com.e.tracker.MainActivity
+
+import android.util.Log
 import com.e.tracker.database.*
+import com.e.tracker.osm.OSM_LOG
 import kotlinx.coroutines.*
 import org.osmdroid.util.GeoPoint
 import kotlin.properties.Delegates
@@ -18,7 +19,7 @@ class TrackObject {
     private var uiScope = CoroutineScope(Dispatchers.Main + osmActivityJob)
 
     lateinit var coordsSource: TrackCoordDatabaseDao
-
+    lateinit var trackWayPointSource: TrackWayPointDao
 
     // track details
     var type: TrackSourceType = TrackSourceType.DATABASE
@@ -40,9 +41,15 @@ class TrackObject {
         println("oldName: $oldValue, newName: $newValue")
     }
 
+    var wayPoints = listOf<TrackWayPointModel>()
 
+    fun updateTrack() {
+        Log.i(OSM_LOG, "UpdateMap()")
 
-    private fun updateTrack() {}
+        // any wayPoints?
+        getWayPoints()
+
+    }
 
     /**
      * Insert new track coordinates into DB,
@@ -51,7 +58,7 @@ class TrackObject {
      * @param position
      */
     suspend fun insertCoord( geoPoint: GeoPoint, position: Int? = 0 ) {
-        var trackCoordModel = TrackCoordModel()
+        val trackCoordModel = TrackCoordModel()
         trackCoordModel.latitude = geoPoint.latitude
         trackCoordModel.longitude = geoPoint.longitude
         trackCoordModel.track = id
@@ -237,10 +244,10 @@ class TrackObject {
             val result = coordsSource.delete(trackCoordModel)
             println("deleteCoordInDB with result: $result")
             if (result > 0) {
-                var trackPosition = trackCoordModel.trackPosition
+                //var trackPosition = trackCoordModel.trackPosition
                 // update trackPosition if deleted coord was not the last in path
                 if (trackCoordIdx < coords.size - 1) {
-                    for (i in (trackCoordIdx + 1)..(coords.size - 1)) {
+                    for (i in (trackCoordIdx + 1) until (coords.size - 1)) {
                         val newPosition = coords[i].trackPosition - 1
                         coordsSource.updatePositionOfCoord(newPosition, coords[i].id)
                     }
@@ -250,6 +257,39 @@ class TrackObject {
 
                 res()
             }
+        }
+    }
+
+    /**
+     *
+     * @param wayPointModel
+     */
+    fun addWayPoint(wayPointModel: TrackWayPointModel) {
+        Log.i(OSM_LOG, "addWaypoint at path point ${wayPointModel.pointId}")
+        wayPointModel.trackId = id
+
+        uiScope.launch { insertWayPoint(wayPointModel) }
+    }
+
+    private suspend fun insertWayPoint(wayPointModel: TrackWayPointModel) {
+        Log.i(OSM_LOG, "insert track waypoint")
+        withContext(Dispatchers.IO) {
+            val res = trackWayPointSource.insert(wayPointModel)
+            Log.i(OSM_LOG, "TrackWayPoint insert result: $res")
+        }
+    }
+
+    fun getWayPoints() {
+        Log.i(OSM_LOG, "getWayPoints for track $id")
+
+        uiScope.launch { getWayPointsForTrack() }
+    }
+
+    private suspend fun getWayPointsForTrack() {
+        Log.i(OSM_LOG, "getWayPointForTrack track id: $id")
+        withContext(Dispatchers.IO) {
+            wayPoints = trackWayPointSource.getWayPointsForId(id)
+            Log.i(OSM_LOG, "TrackWayPoints for track $id: ${wayPoints.size}")
         }
     }
 
@@ -280,4 +320,13 @@ enum class TrackActionType {
     RemoveSelected,
     MoveMarker,
     AddMarker,
+}
+
+enum class TrackMarkerType {
+    UNDEFINED,
+    START,
+    END,
+    POINT,
+    POINTSELECTED,
+    WAYPOINT,
 }

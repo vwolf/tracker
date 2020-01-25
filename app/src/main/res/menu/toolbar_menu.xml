@@ -10,7 +10,15 @@
         android:icon="@drawable/ic_add_black_24dp"
         android:title="@string/menu_help"
         app:showAsAction="never">
-
     </item>
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/menu_showWaypoints"
+            android:checkable="true"
+            android:checked="false"
+            android:enabled="true"
+            android:title="@string/menu_wayPoint"></item>
+
+    </group>
 
 </menu>

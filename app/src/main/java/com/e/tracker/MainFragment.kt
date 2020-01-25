@@ -10,7 +10,6 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.e.tracker.databinding.FragmentMainBinding
 import com.e.tracker.track.TrackFileParcel
-import com.e.tracker.track.TrackListFragment
 import com.e.tracker.track.Tracks
 import java.io.File
 
@@ -48,7 +47,7 @@ class MainFragment : Fragment() {
         // To TrackListFragment
         binding.buttonShow.setOnClickListener { view: View ->
 
-            val newBundle: Bundle = Bundle()
+            val newBundle = Bundle()
             newBundle.putParcelable("filePaths", TrackFileParcel(filesList))
 //
 //            val aFragment = TrackListFragment()

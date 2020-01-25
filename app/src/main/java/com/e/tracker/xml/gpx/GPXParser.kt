@@ -605,14 +605,14 @@ class GPXParser {
     private fun readNumber(parser: XmlPullParser): Int {
         parser.require(
             XmlPullParser.START_TAG,
-            GPXParser.Companion.namespace,
-            GPXParser.Companion.TAG_NUMBER
+            namespace,
+            TAG_NUMBER
         )
         val number = Integer.valueOf(readText(parser))
         parser.require(
             XmlPullParser.END_TAG,
-            GPXParser.Companion.namespace,
-            GPXParser.Companion.TAG_NUMBER
+            namespace,
+            TAG_NUMBER
         )
         return number
     }
@@ -625,8 +625,8 @@ class GPXParser {
     private fun readYear(parser: XmlPullParser): Int {
         parser.require(
             XmlPullParser.START_TAG,
-            GPXParser.Companion.namespace,
-            GPXParser.Companion.TAG_YEAR
+            namespace,
+            TAG_YEAR
         )
         var yearStr = readText(parser)
         // we might need to strip an optional time-zone, even though I've never seen it
@@ -637,8 +637,8 @@ class GPXParser {
         val year = Integer.valueOf(yearStr)
         parser.require(
             XmlPullParser.END_TAG,
-            GPXParser.Companion.namespace,
-            GPXParser.Companion.TAG_YEAR
+            namespace,
+            TAG_YEAR
         )
         return year
     }
