@@ -99,7 +99,7 @@ class FragmentOsmMap : Fragment() {
 
     // Marker
     private var selectedMarkers = mutableListOf<Marker>()
-    private var selectedMarkersPathPosition = mutableListOf<Int>()
+    var selectedMarkersPathPosition = mutableListOf<Int>()
     private var activeMarkerUid: String? = null
     private var activeMarker: Marker? = null
 

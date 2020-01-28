@@ -1,14 +1,19 @@
 package com.e.tracker
 
 import android.Manifest
+import android.content.ContentUris
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.databinding.DataBindingUtil
 import com.e.tracker.Support.*
 import com.e.tracker.Support.Permissions
 import com.e.tracker.databinding.ActivityMainBinding
+import com.e.tracker.osm.OSM_LOG
 
 
 class MainActivity : AppCompatActivity(){
@@ -32,6 +37,7 @@ class MainActivity : AppCompatActivity(){
         val storagePermissions = arrayOf( Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
         Permissions(applicationContext, this).requestPermissions(storagePermissions, PERMISSIONS_REQUEST_READWRITE_EXTERNAL)
 
+        getLocalImagePaths()
     }
 
     // put the option on screen
@@ -68,5 +74,25 @@ class MainActivity : AppCompatActivity(){
 
         return false
         //return super.onOptionsItemSelected(item)
+    }
+
+    fun getLocalImagePaths() {
+        val result = mutableListOf<Uri>()
+        val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        val projection = arrayOf(MediaStore.Images.Media._ID)
+        contentResolver.query(uri, projection, null, null, null)?.use {
+            while (it.moveToNext()) {
+                result.add(
+                    ContentUris.withAppendedId(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        it.getLong(0)
+                    )
+                )
+            }
+        }
+        Log.i(OSM_LOG, "getLocalImagePaths.result: ${result.size}")
+        for (r in result) {
+            Log.i(OSM_LOG, "$r")
+        }
     }
 }

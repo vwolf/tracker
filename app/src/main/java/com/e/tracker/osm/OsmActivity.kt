@@ -371,11 +371,23 @@ class OsmActivity : AppCompatActivity(),
      */
     override fun onItemClick(item: String) {
         Log.i(OSM_LOG, "FragmentOsmMap.onItemClick $item")
-        mapFragment.onItemClick(item)
+        uiScope.launch {
+            mapFragment.onItemClick(item)
+        }
+
     }
 
+    /**
+     * Receive TrackWayPointModel
+     * Update pointId to selected point
+     *
+     * @param waypoint
+     */
     override fun onSaveWaypoint(waypoint: TrackWayPointModel) {
         Log.i(OSM_LOG, "OsmActivity.onSaveWaypoint")
+
+        waypoint.pointId = mapFragment.selectedMarkersPathPosition.first().toLong()
+
         trackObject.addWayPoint(waypoint)
     }
 }

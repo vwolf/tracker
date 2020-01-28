@@ -2,6 +2,7 @@ package com.e.tracker.track
 
 
 import android.util.Log
+import android.widget.Toast
 import com.e.tracker.database.*
 import com.e.tracker.osm.OSM_LOG
 import kotlinx.coroutines.*
@@ -268,15 +269,22 @@ class TrackObject {
         Log.i(OSM_LOG, "addWaypoint at path point ${wayPointModel.pointId}")
         wayPointModel.trackId = id
 
-        uiScope.launch { insertWayPoint(wayPointModel) }
+        uiScope.launch {
+            val res = insertWayPoint(wayPointModel)
+            if (res > -1) {
+
+            }
+        }
     }
 
-    private suspend fun insertWayPoint(wayPointModel: TrackWayPointModel) {
+    private suspend fun insertWayPoint(wayPointModel: TrackWayPointModel) : Long {
         Log.i(OSM_LOG, "insert track waypoint")
         withContext(Dispatchers.IO) {
             val res = trackWayPointSource.insert(wayPointModel)
             Log.i(OSM_LOG, "TrackWayPoint insert result: $res")
+            res
         }
+        return -1L
     }
 
     fun getWayPoints() {
