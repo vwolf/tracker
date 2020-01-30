@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="8dp">
+
+    <EditText
+        android:id="@+id/waypoint_edit_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:hint="@string/track_name_hint"
+        android:importantForAutofill="no"
+        android:inputType="textAutoComplete"
+        android:singleLine="true"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+    </EditText>
+
+    <EditText
+        android:id="@+id/waypoint_edit_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:hint="@string/track_description_hint"
+        android:importantForAutofill="no"
+        android:inputType="textMultiLine|textAutoComplete"
+        android:singleLine="false"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/waypoint_edit_header" />
+
+    <View
+        android:id="@+id/divider6"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/waypoint_edit_description" />
+
+    <HorizontalScrollView
+        android:id="@+id/waypoint_editimages_scrollview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/divider6">
+
+        <LinearLayout
+            android:id="@+id/waypoint_newimages_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <include layout="@layout/waypoint_images_edit"/>
+
+        </LinearLayout>
+
+<!--        <LinearLayout-->
+<!--            android:id="@+id/waypoint_editimages_layout"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="horizontal">-->
+
+<!--            <ImageButton-->
+<!--                android:id="@+id/waypoint_btn_editimage"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                app:srcCompat="@drawable/ic_add_circle_black_24dp" />-->
+
+<!--            <ImageView-->
+<!--                android:id="@+id/waypoint_editimage_view"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:cropToPadding="true"-->
+<!--                android:paddingStart="4dp"-->
+<!--                android:paddingEnd="4dp"-->
+<!--                tools:srcCompat="@tools:sample/avatars" />-->
+
+<!--            <include layout="@layout/waypoint_image" />-->
+<!--        </LinearLayout>-->
+    </HorizontalScrollView>
+
+    <LinearLayout
+        android:id="@+id/waypoint_btn_edit_toolbar"
+        style="?android:attr/buttonBarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/waypoint_editimages_scrollview">
+
+        <Button
+            android:id="@+id/waypoint_edit_save"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="#81C784"
+            android:text="@string/tracker_update"
+            app:cornerRadius="0dp" />
+
+        <!--        <Button-->
+        <!--            android:id="@+id/waypoint_btn_2"-->
+        <!--            style="?android:attr/buttonBarButtonStyle"-->
+        <!--            android:layout_width="0dp"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_weight="1"-->
+        <!--            android:background="#00BB4646"-->
+        <!--            android:insetBottom="6dp"-->
+        <!--            android:text="@string/tracker_cancel"-->
+        <!--            app:cornerRadius="0dp" />-->
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

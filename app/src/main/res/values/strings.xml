@@ -26,4 +26,10 @@
     <string name="tracker_delete">Delete</string>
     <string name="tracker_save">Save</string>
     <string name="tracker_cancel">Cancel</string>
+    <string name="tracker_update">Update</string>
+    <string name="waypoint_image_description">Image selected for waypoint</string>
+    <string name="waypoint_video_header">Videos</string>
+    <string name="waypoint_image_header">Images</string>
+    <string name="waypoint_audio_header">Audios</string>
+
 </resources>

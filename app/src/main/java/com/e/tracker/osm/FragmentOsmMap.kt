@@ -1172,7 +1172,7 @@ class FragmentOsmMap : Fragment() {
 //        val dialog = WayPointNewBottomSheetDialog.getInstance()
 //        dialog.show(requireFragmentManager(), WayPointNewBottomSheetDialog::class.java.simpleName)
         if (trackObject.wayPoints.indexOfFirst { it.pointId == trackObject.coords[selectedMarkersPathPosition.first()].id} == -1) {
-            osmBottomSheet?.openOsmBottomSheet("NewWayPoint")
+            osmBottomSheet?.openOsmBottomSheet("WayPoint_New")
         }
     }
 
@@ -1300,8 +1300,9 @@ class FragmentOsmMap : Fragment() {
      * implement this interface in Activity, parent Fragment or test implentation
      */
     interface OsmBottomSheet {
-        fun openOsmBottomSheet(layoutResource: String)
-        fun openOsmBottomSheetWithContent(layoutResource: String, wp: TrackWayPointModel)
+        fun openOsmBottomSheet(type: String)
+        fun openOsmBottomSheetWithContent(type: String, trackWayPointModel: TrackWayPointModel)
+        //fun openOsmBottomSheetToEdit(type: String, trackWayPointModel: TrackWayPointModel)
     }
 }
 

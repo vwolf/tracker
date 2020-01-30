@@ -42,7 +42,8 @@ class TrackObject {
         println("oldName: $oldValue, newName: $newValue")
     }
 
-    var wayPoints = listOf<TrackWayPointModel>()
+    var wayPoints = mutableListOf<TrackWayPointModel>()
+        set(value) = updateTrack()
 
     fun updateTrack() {
         Log.i(OSM_LOG, "UpdateMap()")
@@ -271,21 +272,37 @@ class TrackObject {
 
         uiScope.launch {
             val res = insertWayPoint(wayPointModel)
-            if (res > -1) {
-
-            }
+//            if (res > -1) {
+//
+//            }
         }
     }
 
-    private suspend fun insertWayPoint(wayPointModel: TrackWayPointModel) : Long {
+    suspend fun insertWayPoint(wayPointModel: TrackWayPointModel)  {
         Log.i(OSM_LOG, "insert track waypoint")
         withContext(Dispatchers.IO) {
             val res = trackWayPointSource.insert(wayPointModel)
             Log.i(OSM_LOG, "TrackWayPoint insert result: $res")
+            wayPoints.add(wayPointModel)
             res
         }
-        return -1L
+        //return -1L
     }
+
+
+    suspend fun updateWayPoint(wayPointModel: TrackWayPointModel) {
+        Log.i(OSM_LOG, "update track waypoint")
+        withContext(Dispatchers.IO) {
+            val res = trackWayPointSource.update(wayPointModel)
+            Log.i(OSM_LOG, "update track waypoint result: $res")
+            val id = wayPoints.indexOfFirst { it.id == wayPointModel.id }
+            if (id != null) {
+                wayPoints[id] = wayPointModel
+            }
+            res
+        }
+    }
+
 
     fun getWayPoints() {
         Log.i(OSM_LOG, "getWayPoints for track $id")
@@ -296,7 +313,8 @@ class TrackObject {
     private suspend fun getWayPointsForTrack() {
         Log.i(OSM_LOG, "getWayPointForTrack track id: $id")
         withContext(Dispatchers.IO) {
-            wayPoints = trackWayPointSource.getWayPointsForId(id)
+            wayPoints.addAll(0, trackWayPointSource.getWayPointsForId(id))
+            //wayPoints = trackWayPointSource.getWayPointsForId(id)
             Log.i(OSM_LOG, "TrackWayPoints for track $id: ${wayPoints.size}")
         }
     }

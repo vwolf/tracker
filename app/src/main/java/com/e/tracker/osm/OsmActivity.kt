@@ -245,17 +245,17 @@ class OsmActivity : AppCompatActivity(),
                 val t = parsedGpx.tracks.first()
                 val ts = t.trackSegments
                 val firstTrack = ts[0] as TrackSegment
-                if (firstTrack is TrackSegment) {
-                    for (p in firstTrack.trackPoints) {
-                        val c = TrackCoordModel()
-                        c.latitude = p.latitude
-                        c.longitude = p.longitude
-                        c.altitude = p.elevation
 
-                        trackObject.coords.add(c)
-                        trackObject.coordsGpx.add(GeoPoint(c.latitude ?: 0.0, c.longitude ?: 0.0))
-                    }
+                for (p in firstTrack.trackPoints) {
+                    val c = TrackCoordModel()
+                    c.latitude = p.latitude
+                    c.longitude = p.longitude
+                    c.altitude = p.elevation
+
+                    trackObject.coords.add(c)
+                    trackObject.coordsGpx.add(GeoPoint(c.latitude ?: 0.0, c.longitude ?: 0.0))
                 }
+
             }
         }
 
@@ -332,36 +332,51 @@ class OsmActivity : AppCompatActivity(),
     /////////////// BottomSheetDialog //////////////////////////
 
     /**
-     * Open a BottomSheetDialogFragment
+     * Open a BottomSheetDialogFragment in New Waypoint mode.
      *
-     * @param layoutResource res.layout file
+     * @param type what kind of action (new, show, edit)
      */
-    override fun openOsmBottomSheet(layoutResource: String) {
-        Log.i(OSM_LOG, "openOsmBottomSheet layout $layoutResource")
-        when(layoutResource) {
-            "NewWayPoint" -> {
+    override fun openOsmBottomSheet(type: String) {
+        Log.i(OSM_LOG, "openOsmBottomSheet layout $type")
+        when(type) {
+            "WayPoint_New" -> {
                 val dialog = OsmBottomSheet.getInstance(
                     R.layout.waypoint_new_bottom_sheet,
-                    layoutResource
+                    type
                 )
                 dialog.show(supportFragmentManager, dialog.tag)
             }
         }
     }
 
-    override fun openOsmBottomSheetWithContent(layoutResource: String, wp: TrackWayPointModel) {
-        Log.i(OSM_LOG, "openOsmBottomSheet layout $layoutResource")
-        when (layoutResource) {
+    /**
+     * Open a BottomSheetDialogFragment in Display or Edit WayPoint mode.
+     *
+     * @param type
+     * @param trackWayPointModel waypoint data
+     */
+    override fun openOsmBottomSheetWithContent(type: String, trackWayPointModel: TrackWayPointModel) {
+        Log.i(OSM_LOG, "openOsmBottomSheetWithContent layout $type")
+        when (type) {
             "WayPoint" -> {
                 val dialog = OsmBottomSheet.getInstance(
                     R.layout.waypoint_bottom_sheet,
-                    layoutResource,
-                    wp
+                    type,
+                    trackWayPointModel
+                )
+                dialog.show(supportFragmentManager, dialog.tag)
+            }
+            "WayPoint_Edit" -> {
+                val dialog = OsmBottomSheet.getInstance(
+                    R.layout.waypoint_edit_bottom_sheet,
+                    type,
+                    trackWayPointModel
                 )
                 dialog.show(supportFragmentManager, dialog.tag)
             }
         }
     }
+
 
 
     /**
@@ -382,12 +397,46 @@ class OsmActivity : AppCompatActivity(),
      * Update pointId to selected point
      *
      * @param waypoint
+     * @param dialog BottomSheetDialog to dismiss after saving waypoint
      */
-    override fun onSaveWaypoint(waypoint: TrackWayPointModel) {
+    override fun onSaveWaypoint(wayPointModel: TrackWayPointModel, dialog: OsmBottomSheet) {
         Log.i(OSM_LOG, "OsmActivity.onSaveWaypoint")
+        wayPointModel.trackId = trackObject.id
+        wayPointModel.pointId = (mapFragment.selectedMarkersPathPosition.first() + 1).toLong()
 
-        waypoint.pointId = mapFragment.selectedMarkersPathPosition.first().toLong()
+        uiScope.launch {
+            val res = trackObject.insertWayPoint(wayPointModel)
+            Log.i(OSM_LOG, "onSaveWayPoint result $res")
+            // ToDo there should be another way to get the result from insertWayPoint()
+            if (res.equals(-1)) {
+                Toast.makeText(applicationContext, "Error saving waypoint", Toast.LENGTH_LONG).show()
+            } else {
+                dialog.dismiss()
+                // waypoint successfully added, update display
+                mapFragment.showWayPoints(true)
+            }
+        }
+        //trackObject.addWayPoint(waypoint)
+    }
 
-        trackObject.addWayPoint(waypoint)
+    override fun onEditWaypoint(trackWayPointModel: TrackWayPointModel, dialog: OsmBottomSheet) {
+        Log.i(OSM_LOG, "OsmActivity.onEditWaypoint")
+        dialog.dismiss()
+
+        openOsmBottomSheetWithContent("WayPoint_Edit", trackWayPointModel)
+    }
+
+    override fun onUpdateWaypoint(trackWayPointModel: TrackWayPointModel, dialog: OsmBottomSheet) {
+        Log.i(OSM_LOG, "OsmActivity.onUpdateWaypoint")
+
+        uiScope.launch {
+            val res = trackObject.updateWayPoint(trackWayPointModel)
+            Log.i(OSM_LOG, "onUpdateWayPoint result: $res")
+            if (res.equals(-1)) {
+                Toast.makeText(applicationContext, "Error updating waypoint", Toast.LENGTH_LONG).show()
+            } else {
+                dialog.dismiss()
+            }
+        }
     }
 }
