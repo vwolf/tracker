@@ -31,7 +31,7 @@ class WayPointNewBottomSheetDialog : BottomSheetDialogFragment(), View.OnClickLi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        view.waypoint_btn_1.setOnClickListener(this)
+        view.waypoint_btn_save.setOnClickListener(this)
         //view.waypoint_btn_2.setOnClickListener(this)
     }
 

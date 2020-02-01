@@ -42,61 +42,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/waypoint_edit_header" />
 
-    <View
-        android:id="@+id/divider6"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="8dp"
-        android:background="?android:attr/listDivider"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/waypoint_edit_description" />
 
-    <HorizontalScrollView
-        android:id="@+id/waypoint_editimages_scrollview"
+    <LinearLayout
+        android:id="@+id/waypoint_media_all"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/divider6">
+        app:layout_constraintTop_toBottomOf="@+id/waypoint_edit_description">
 
-        <LinearLayout
-            android:id="@+id/waypoint_newimages_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+        <include layout="@layout/waypoint_media_edit"></include>
 
-            <include layout="@layout/waypoint_images_edit"/>
 
-        </LinearLayout>
-
-<!--        <LinearLayout-->
-<!--            android:id="@+id/waypoint_editimages_layout"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:orientation="horizontal">-->
-
-<!--            <ImageButton-->
-<!--                android:id="@+id/waypoint_btn_editimage"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                app:srcCompat="@drawable/ic_add_circle_black_24dp" />-->
-
-<!--            <ImageView-->
-<!--                android:id="@+id/waypoint_editimage_view"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:cropToPadding="true"-->
-<!--                android:paddingStart="4dp"-->
-<!--                android:paddingEnd="4dp"-->
-<!--                tools:srcCompat="@tools:sample/avatars" />-->
-
-<!--            <include layout="@layout/waypoint_image" />-->
-<!--        </LinearLayout>-->
-    </HorizontalScrollView>
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/waypoint_btn_edit_toolbar"
@@ -106,7 +67,7 @@
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/waypoint_editimages_scrollview">
+        app:layout_constraintTop_toBottomOf="@+id/waypoint_media_all">
 
         <Button
             android:id="@+id/waypoint_edit_save"

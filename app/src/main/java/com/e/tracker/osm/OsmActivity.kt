@@ -413,7 +413,7 @@ class OsmActivity : AppCompatActivity(),
             } else {
                 dialog.dismiss()
                 // waypoint successfully added, update display
-                mapFragment.showWayPoints(true)
+                mapFragment.invokeUpdateMap("waypoints")
             }
         }
         //trackObject.addWayPoint(waypoint)
@@ -435,6 +435,20 @@ class OsmActivity : AppCompatActivity(),
             if (res.equals(-1)) {
                 Toast.makeText(applicationContext, "Error updating waypoint", Toast.LENGTH_LONG).show()
             } else {
+                dialog.dismiss()
+            }
+        }
+    }
+
+
+    override fun onDeleteWaypoint(trackWayPointModel: TrackWayPointModel, dialog: OsmBottomSheet) {
+        Log.i(OSM_LOG, "OsmActivity.onDeleteWaypoint")
+        uiScope.launch {
+            val res = trackObject.deleteWayPoint(trackWayPointModel)
+            if (res.equals(-1)) {
+                Toast.makeText(applicationContext, "Error deleting waypoint", Toast.LENGTH_LONG).show()
+            } else {
+                mapFragment.invokeUpdateMap("waypoints")
                 dialog.dismiss()
             }
         }

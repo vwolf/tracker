@@ -326,7 +326,7 @@ class FragmentOsmMap : Fragment() {
     fun showWayPoints() {
         Log.i(OSM_LOG, "showWayPoints")
         val mIcon =
-            ContextCompat.getDrawable(requireContext(), R.drawable.ic_explore_black_24dp)
+            ContextCompat.getDrawable(requireContext(), R.drawable.ic_brightness_1_black_24dp)
                 ?.mutate()
         mIcon?.setTint(ContextCompat.getColor(requireContext(), R.color.schema_one_green))
 
@@ -403,6 +403,16 @@ class FragmentOsmMap : Fragment() {
 
             // save changed coord
             trackObject.updateCoordPosition(trackObject.coords[pathIndex])
+            // last marker moved? then update icon position
+            Log.i(OSM_LOG, "pathIndex: $pathIndex, path.points.size: ${path.points.size}")
+            if (pathIndex == path.points.size - 1) {
+                val endMarker = getMarkerOfType(TrackMarkerType.END)
+                if (endMarker != null) {
+                    endMarker.position = GeoPoint(trackObject.coordsGpx[pathIndex].latitude, trackObject.coordsGpx[pathIndex].longitude)
+                }
+            }
+
+
         } else {
             // deselect selected segment
             if(selectedSegment > -1 && selectedMarkers.isNotEmpty()) {
@@ -508,7 +518,15 @@ class FragmentOsmMap : Fragment() {
     }
 
 
-
+    fun invokeUpdateMap(type: String) {
+        when (type) {
+            "waypoints" -> {
+                hideWayPoints()
+                showWayPoints()
+            }
+        }
+        map.invalidate()
+    }
 
 
     private fun trackStartMarker() {
@@ -803,6 +821,16 @@ class FragmentOsmMap : Fragment() {
        }
     }
 
+    private fun getMarkerOfType( markerType: TrackMarkerType) : Marker? {
+        for (m in map.overlays) {
+            if (m is Marker) {
+                if (m.type == markerType) {
+                    return m
+                }
+            }
+        }
+        return null
+    }
 
     /**
      * Set touched marker into selected state
@@ -855,9 +883,19 @@ class FragmentOsmMap : Fragment() {
                     "Last point of path",
                     Toast.LENGTH_LONG
                 ).show()
-                unSelectSegment()
-                trackEndMarker()
-                map.invalidate()
+                // make last marker moveable
+                selectedMarkers.add(marker)
+                selectedMarkersPathPosition.add(idx)
+                marker.icon = ContextCompat.getDrawable(
+                    requireContext(),
+                    R.drawable.ic_brightness_1_black_12dp
+                )?.mutate()
+                marker.icon.setTint(ContextCompat.getColor(requireContext(), R.color.schema_one_red))
+                newMarkerSelected = true
+
+//                unSelectSegment()
+//                trackEndMarker()
+//                map.invalidate()
             } else {
                 selectedMarkers.add(marker)
                 selectedMarkersPathPosition.add(idx)

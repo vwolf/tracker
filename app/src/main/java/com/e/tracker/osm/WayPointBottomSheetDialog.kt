@@ -35,12 +35,12 @@ class WayPointBottomSheetDialog(
         savedInstanceState: Bundle?
     ): View? {
         val v = inflater.inflate(R.layout.waypoint_bottom_sheet, container, false)
-        v.waypoint_btn_1.setOnClickListener {
-            btnEdit() }
-
-        v.waypoint_btn_2.setOnClickListener {
-            btnDelete()
-        }
+//        v.waypoint_btn_save.setOnClickListener {
+//            btnEdit() }
+//
+//        v.waypoint_btn_2.setOnClickListener {
+//            btnDelete()
+//        }
         return v
     }
 

@@ -1,46 +1,40 @@
 package com.e.tracker.osm.dialogs
 
-import android.annotation.TargetApi
-import android.app.Activity
 import android.app.AlertDialog
-import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.media.Image
 import android.net.Uri
-import android.os.Build
+import android.opengl.Visibility
 import android.os.Bundle
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
-import android.util.Size
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import android.widget.VideoView
 import androidx.core.net.toUri
+import androidx.core.view.size
 import com.e.tracker.R
 import com.e.tracker.database.TrackWayPointModel
 import com.e.tracker.osm.OSM_LOG
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.android.synthetic.main.waypoint_bottom_sheet.*
-import kotlinx.android.synthetic.main.waypoint_bottom_sheet.waypoint_btn_1
 import kotlinx.android.synthetic.main.waypoint_edit_bottom_sheet.*
 import kotlinx.android.synthetic.main.waypoint_image.*
 import kotlinx.android.synthetic.main.waypoint_images_edit.*
 import kotlinx.android.synthetic.main.waypoint_images_edit.view.*
+import kotlinx.android.synthetic.main.waypoint_media_edit.*
+import kotlinx.android.synthetic.main.waypoint_media_edit.view.*
 import kotlinx.android.synthetic.main.waypoint_new_bottom_sheet.*
 import kotlinx.android.synthetic.main.waypoint_new_bottom_sheet.view.*
-import kotlinx.android.synthetic.main.waypoint_new_bottom_sheet.view.waypoint_newimages_layout
 import kotlinx.android.synthetic.main.waypoint_new_bottom_sheet.waypoint_description
 import kotlinx.android.synthetic.main.waypoint_new_bottom_sheet.waypoint_header
-import kotlinx.android.synthetic.main.waypoint_new_bottom_sheet.waypoint_newimages_layout
 import kotlinx.android.synthetic.main.waypoint_video_edit.view.*
 import org.joda.time.DateTime
 
@@ -55,9 +49,13 @@ class OsmBottomSheet(
     View.OnClickListener {
 
     private var mListener: OsmDialogListener? = null
-    private var imagePathList = mutableListOf<String>()
 
+    private var imagePathList = mutableListOf<String>()
     private var imagesToDelete = mutableListOf<ImageView>()
+
+    private var videoPathList = mutableListOf<String>()
+
+    private var audioPathList = mutableListOf<String>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -77,26 +75,39 @@ class OsmBottomSheet(
         when (dialogType) {
             "WayPoint_New" -> {
 
-                view.waypoint_btn_deleteimage.alpha = 0.5f
-                view.waypoint_btn_deleteimage.isEnabled = false
-
-                view.waypoint_btn_1.setOnClickListener {
+                view.waypoint_btn_save.setOnClickListener {
                     onSaveWayPoint()
                 }
                 // images
-                view.waypoint_btn_addimage.setOnClickListener {
+                view.waypoint_media_image_delete_btn.alpha = 0.5f
+                view.waypoint_media_image_delete_btn.isEnabled = false
+                view.waypoint_media_image_add_btn.setOnClickListener {
                     Log.i(OSM_LOG, "OsmBottomSheet addImage button")
                     showPictureDialog()
                 }
-                view.waypoint_btn_deleteimage.setOnClickListener {
+                view.waypoint_media_image_delete_btn.setOnClickListener {
                     Log.i(OSM_LOG, "OsmBottomSheet deleteImage button")
                     deleteImage()
                 }
+
+                waypoint_media_imageview.visibility = View.GONE
+
                 // video
-                view.waypoint_btn_addvideo.setOnClickListener {
+                view.waypoint_media_video_delete_btn.alpha = 0.5f
+                view.waypoint_media_video_delete_btn.isEnabled = false
+
+                view.waypoint_media_video_add_btn.setOnClickListener {
                     Log.i(OSM_LOG, "OsmBottomSheet addVideo button")
                     showVideoDialog()
                 }
+
+                waypoint_media_videoview.visibility = View.GONE
+
+                // audio
+                view.waypoint_media_audio_delete_btn.alpha = 0.5f
+                view.waypoint_media_audio_delete_btn.isEnabled = false
+
+                waypoint_media_audioview.visibility = View.GONE
             }
 
             // waypoint_bottom_sheet
@@ -109,40 +120,44 @@ class OsmBottomSheet(
                     // media content
                     // Images
                     if (trackWayPointModel.wayPointImages.isNotEmpty()) {
-                        for ( (ip, i) in trackWayPointModel.wayPointImages.withIndex()) {
-                            if (ip == 0) {
-                                // use imageView in layout
-                                val bitmap = BitmapFactory.decodeStream(requireContext().contentResolver.openInputStream(i.toUri()))
-                                waypoint_imageview_genric.setImageBitmap(bitmap)
-                                //waypoint_image_view.setImageBitmap(bitmap)
-                            } else {
-                                // new imageView, clone from layout
-                                val imageView = ImageView(requireContext())
-                                imageView.layoutParams = waypoint_imageview_genric?.layoutParams
+                        for ((ip, i) in trackWayPointModel.wayPointImages.withIndex()) {
 
-                                waypoint_images_layout.addView(imageView)
+                            // new imageView, clone from layout
+                            val imageView = ImageView(requireContext())
+                            imageView.layoutParams = waypoint_imageview_genric?.layoutParams
 
-                                val bitmap = BitmapFactory.decodeStream(requireContext().contentResolver.openInputStream(i.toUri()))
-                                imageView.setImageBitmap(bitmap)
+                            waypoint_shwo_media_imageview.addView(imageView)
 
-                                imageView.adjustViewBounds = true
-                                imageView.scaleType = ImageView.ScaleType.FIT_CENTER
-                            }
+                            val bitmap = BitmapFactory.decodeStream(
+                                requireContext().contentResolver.openInputStream(i.toUri())
+                            )
+                            imageView.setImageBitmap(bitmap)
+
+                            imageView.adjustViewBounds = true
+                            imageView.scaleType = ImageView.ScaleType.FIT_CENTER
+
                         }
+                    } else {
+                        waypoint_shwo_media_imageview.visibility = View.GONE
+                        waypoint_show_media_image_header.alpha = 0.7f
                     }
 
                     // Videos
+                    waypoint_show_media_videoview.visibility = View.GONE
+                    waypoint_show_media_video_header.alpha = 0.7f
 
                     // Audios
+                    waypoint_show_media_audioview.visibility = View.GONE
+                    waypoint_show_media_audio_header.alpha = 0.7f
 
-
-                    waypoint_btn_1.setOnClickListener {
+                    waypoint_btn_edit.setOnClickListener {
                         Log.i(OSM_LOG, "Waypoint edit button click")
                         editWayPoint()
                     }
 
-                    waypoint_btn_2.setOnClickListener {
+                    waypoint_btn_delete.setOnClickListener {
                         Log.i(OSM_LOG, "Waypoint delete button")
+                        deleteWayPoint()
                     }
                 }
             }
@@ -155,9 +170,32 @@ class OsmBottomSheet(
                     view.findViewById<TextView>(R.id.waypoint_edit_description).text =
                         trackWayPointModel.description
 
+                    // images
                     if (trackWayPointModel.wayPointImages.isNotEmpty()) {
                         showImagesInEditMode()
                     }
+
+                    view.waypoint_media_image_add_btn.setOnClickListener {
+                        Log.i(OSM_LOG, "OsmBottomSheet addImage button")
+                        showPictureDialog()
+                    }
+                    view.waypoint_media_image_delete_btn.setOnClickListener {
+                        Log.i(OSM_LOG, "OsmBottomSheet deleteImage button")
+                        deleteImage()
+                    }
+
+                    waypoint_media_image_delete_btn.isEnabled = false
+                    waypoint_media_image_delete_btn.alpha = 0.5f
+
+                    // video
+                    waypoint_media_video_delete_btn.isEnabled = false
+                    waypoint_media_video_delete_btn.alpha = 0.5f
+                    waypoint_media_videoview.visibility = View.GONE
+
+                    // audio
+                    waypoint_media_audio_delete_btn.isEnabled = false
+                    waypoint_media_audio_delete_btn.alpha = 0.5f
+                    waypoint_media_audioview.visibility = View.GONE
                 }
 
                 waypoint_edit_save.setOnClickListener {
@@ -180,7 +218,8 @@ class OsmBottomSheet(
 
                 imageView.layoutParams = waypoint_imageview_genric?.layoutParams
 
-                waypoint_newimages_layout.addView(imageView)
+                //waypoint_newimages_layout.addView(imageView)
+                waypoint_media_imageview.addView(imageView)
                 //waypoint_images_layout.addView(imageView)
 
                 val bitmap = BitmapFactory.decodeStream(requireContext().contentResolver.openInputStream(i.toUri()))
@@ -201,6 +240,8 @@ class OsmBottomSheet(
 
                 true
             }
+
+            imagePathList.add(i)
         }
     }
 
@@ -249,18 +290,14 @@ class OsmBottomSheet(
         if (requestCode == 1) {
             if (data != null) {
                 try {
-//                    var imageView = view?.waypoint_newimage_view
-//                    if (imagePathList.isNotEmpty()) {
-//                       var imageView = newImageView()
-//                        view?.waypoint_newimages_layout?.addView(imageView)
-//                    }
                     var imageView = newImageView()
-                    view?.waypoint_newimages_layout?.addView(imageView)
+                    view?.waypoint_media_imageview?.addView(imageView)
+
                     imageView?.maxHeight = 160
-                    //view?.waypoint_new_imageView?.maxWidth = 160
                     imageView?.setImageURI(data.data)
                     imageView?.adjustViewBounds = true
                     imageView?.scaleType = ImageView.ScaleType.FIT_CENTER
+                    imageView?.id = data.data.hashCode()
                     imageView?.setOnLongClickListener {
 
                         Log.i(OSM_LOG, "Long touch on image")
@@ -274,6 +311,7 @@ class OsmBottomSheet(
 
                         true
                     }
+                    view?.waypoint_media_imageview?.visibility = View.VISIBLE
 
                     val p = data.data?.path as String
                     Log.i(OSM_LOG, "Path: $p")
@@ -335,7 +373,7 @@ class OsmBottomSheet(
                         val thumbnail = getVideoThumbnail(vid)
                         thumbnailView.setImageBitmap(thumbnail)
                         thumbnailView.layoutParams = ViewGroup.LayoutParams(160, 120)
-                        waypoint_newvideo_layout.addView(thumbnailView)
+                        waypoint_media_videoview.addView(thumbnailView)
                     }
 
 
@@ -424,16 +462,28 @@ class OsmBottomSheet(
 
     /**
      * Remove images in [imagesToDelete]
+     * Set delete button state
+     * Remove image view if no images
      *
      */
     private fun deleteImage() {
-        val firstImageView = waypoint_newimages_layout.getChildAt(0)
+//        val firstImageView = waypoint_media_images.getChildAt(0)
         for ( imageView in imagesToDelete) {
-            waypoint_newimages_layout.removeView(imageView)
+            val imageIdx = waypoint_media_imageview.indexOfChild(imageView)
+            waypoint_media_imageview.removeView(imageView)
+            if (imagePathList.size >= imageIdx && imageIdx > 0) {
+                imagePathList.removeAt(imageIdx - 1)
+            }
         }
         imagesToDelete.clear()
-        waypoint_btn_deleteimage.alpha = 0.5f
-        waypoint_btn_deleteimage.isEnabled = false
+
+        waypoint_media_image_delete_btn.alpha = 0.5f
+        waypoint_media_image_delete_btn.isEnabled = false
+
+        if (imagePathList.isEmpty()) {
+            waypoint_media_imageview.visibility = View.GONE
+        }
+
     }
 
     /**
@@ -447,11 +497,11 @@ class OsmBottomSheet(
        }
 
         if (imagesToDelete.isNotEmpty()) {
-            waypoint_btn_deleteimage.alpha = 1.0f
-            waypoint_btn_deleteimage.isEnabled = true
+            waypoint_media_image_delete_btn.alpha = 1.0f
+            waypoint_media_image_delete_btn.isEnabled = true
         } else {
-            waypoint_btn_deleteimage.alpha = 0.5f
-            waypoint_btn_deleteimage.isEnabled = false
+            waypoint_media_image_delete_btn.alpha = 0.5f
+            waypoint_media_image_delete_btn.isEnabled = false
         }
 
     }
@@ -506,6 +556,10 @@ class OsmBottomSheet(
         }
     }
 
+    private fun deleteWayPoint() {
+        mListener?.onDeleteWaypoint(trackWayPointModel, this)
+
+    }
 
     /**
      * Interface to communicate with dialog listener
@@ -515,6 +569,7 @@ class OsmBottomSheet(
         fun onSaveWaypoint(wayPointModel: TrackWayPointModel, dialog: OsmBottomSheet)
         fun onEditWaypoint(trackWayPointModel: TrackWayPointModel, dialog: OsmBottomSheet)
         fun onUpdateWaypoint(wayPointModel: TrackWayPointModel, dialog: OsmBottomSheet)
+        fun onDeleteWaypoint(wayPointModel: TrackWayPointModel, dialog: OsmBottomSheet)
     }
 
 

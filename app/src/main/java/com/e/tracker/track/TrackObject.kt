@@ -303,6 +303,21 @@ class TrackObject {
         }
     }
 
+    suspend fun deleteWayPoint(trackWayPointModel: TrackWayPointModel) {
+        Log.i(OSM_LOG, "delete track waypoint")
+        withContext(Dispatchers.IO) {
+            val res = trackWayPointSource.delete(trackWayPointModel)
+            Log.i(OSM_LOG, "delete track waypoint result $res")
+            if (res > -1) {
+                val id = wayPoints.indexOfFirst { it.id == trackWayPointModel.id }
+                if (id != null) {
+                    wayPoints.removeAt(id)
+                }
+            }
+            res
+        }
+    }
+
 
     fun getWayPoints() {
         Log.i(OSM_LOG, "getWayPoints for track $id")
