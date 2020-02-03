@@ -222,21 +222,23 @@
 
         <Button
             android:id="@+id/waypoint_btn_save"
-            style="?android:attr/buttonBarButtonStyle"
+            style="@style/Widget.MaterialComponents.Button.TextButton.Snackbar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="?attr/colorPrimaryDark"
+            android:background="@color/trackListItem_background"
+            android:backgroundTint="@color/trackListItem_background"
             android:text="@string/tracker_save"
             app:cornerRadius="0dp" />
 
         <Button
-            android:id="@+id/waypoint_btn_2"
-            style="?android:attr/buttonBarButtonStyle"
+            android:id="@+id/waypoint_btn_cancel"
+            style="@style/Widget.MaterialComponents.Button.TextButton.Snackbar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="#00BB4646"
+            android:background="@color/trackListItem_background"
+            android:backgroundTint="@color/trackListItem_background"
             android:insetBottom="6dp"
             android:text="@string/tracker_cancel"
             app:cornerRadius="0dp" />

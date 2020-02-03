@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment
 import com.e.tracker.R
 import com.e.tracker.Support.OsmMapType
 import com.e.tracker.Support.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION
+import com.e.tracker.Support.PERMISSIONS_REQUEST_CAMERA
 import com.e.tracker.database.*
 import com.e.tracker.track.TrackObject
 import com.e.tracker.track.TrackSourceType
@@ -23,6 +24,7 @@ import com.e.tracker.xml.gpx.GPXParser
 import com.e.tracker.xml.gpx.domain.TrackSegment
 import com.e.tracker.xml.gpx.domain.WayPoint
 import com.e.tracker.Support.Permissions
+import com.e.tracker.Support.image.ImageDisplay
 import com.e.tracker.osm.dialogs.OsmBottomSheet
 import kotlinx.coroutines.*
 import org.osmdroid.util.GeoPoint
@@ -30,7 +32,12 @@ import java.io.File
 
 
 const val OSM_LOG = "OSM"
-
+const val WAYPOINT_IMAGEFROMCAMERA = 2001
+const val WAYPOINT_IMAGEFROMGALLERY = 2002
+const val WAYPOINT_VIDEOFROMCAMERA = 2003
+const val WAYPOINT_VIDEOFROMGALLERY = 2004
+const val WAYPOINT_AUDIOFROMRECORDER = 2005
+const val WAYPOINT_AUDIOFROMMUSIC = 2006
 /**
  * OsmBottomSheets: waypoint_new_bottom_sheet, waypoint_bottom_sheet, map_bottom_sheet
  * Implement FragmentOsmMap.OsmBottomSheet interface
@@ -39,10 +46,10 @@ const val OSM_LOG = "OSM"
  */
 class OsmActivity : AppCompatActivity(),
     AdressesDialogFragment.NoticeDialogListener,
-    WayPointNewBottomSheetDialog.ItemClickListener,
     FragmentOsmMap.OsmBottomSheet,
     OsmBottomSheet.OsmDialogListener {
 
+    //WayPointNewBottomSheetDialog.ItemClickListener,
     // db connections
     private val trackSource : TrackDatabaseDao
         get() = TrackDatabase.getInstance(application).trackDatabaseDao
@@ -109,8 +116,11 @@ class OsmActivity : AppCompatActivity(),
             .add( R.id.container, mapFragment )
             .commit()
 
-        val gpsPermissions = arrayOf( Manifest.permission.ACCESS_FINE_LOCATION)
-        Permissions(applicationContext, this).requestPermissions(gpsPermissions, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION )
+//        val gpsPermissions = arrayOf( Manifest.permission.ACCESS_FINE_LOCATION)
+//        Permissions(applicationContext, this).requestPermissions(gpsPermissions, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION )
+
+        val cameraPermissions = arrayOf( Manifest.permission.CAMERA)
+        Permissions(applicationContext, this).requestPermissions(cameraPermissions, PERMISSIONS_REQUEST_CAMERA )
 
     }
 
@@ -319,6 +329,12 @@ class OsmActivity : AppCompatActivity(),
                 return true
             }
 
+            R.id.menu_lockPath -> {
+                item.isChecked = !item.isChecked
+
+                return false
+            }
+
             android.R.id.home -> {
                 super.onBackPressed()
                 return true
@@ -365,6 +381,7 @@ class OsmActivity : AppCompatActivity(),
                     trackWayPointModel
                 )
                 dialog.show(supportFragmentManager, dialog.tag)
+
             }
             "WayPoint_Edit" -> {
                 val dialog = OsmBottomSheet.getInstance(
@@ -386,11 +403,29 @@ class OsmActivity : AppCompatActivity(),
      */
     override fun onItemClick(item: String) {
         Log.i(OSM_LOG, "FragmentOsmMap.onItemClick $item")
-        uiScope.launch {
-            mapFragment.onItemClick(item)
-        }
+//        uiScope.launch {
+//            mapFragment.onItemClick(item)
+//        }
+
+        val nb = Bundle()
+        nb.putString("PATH", item)
+
+        val intent = Intent(baseContext, ImageDisplay::class.java)
+        intent.putExtras(nb)
+        startActivityForResult(intent, 99)
 
     }
+
+
+    override fun onImageClick(wayPointImages: List<String>) {
+        Log.i(OSM_LOG, "FragmentOsmMap.onImageClick")
+
+        val arrayListWayPointImages = arrayListOf<String>()
+        arrayListWayPointImages.addAll(wayPointImages)
+        val b = Bundle()
+        b.putStringArrayList("IMAGESPATH", arrayListWayPointImages)
+    }
+
 
     /**
      * Receive TrackWayPointModel

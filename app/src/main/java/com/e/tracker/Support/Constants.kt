@@ -9,3 +9,12 @@ enum class OsmMapType(val value: Int) {
     OSM_TRACK_FILE(1003),
     OSM_ADDRESS(1009)
 }
+
+enum class WayPointMediaIntents(val value: Int) {
+    SELECT_IMAGE(1001),
+    CAMERA_IMAGE(1002),
+    SELECT_VIDEO(1003),
+    CAMERA_VIDEO(1004),
+    SELECT_AUDIO(1005),
+    RECORD_AUDIO(1006)
+}

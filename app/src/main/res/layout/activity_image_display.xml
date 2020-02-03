@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/displayContainer">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/head"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            app:cardBackgroundColor="@color/schema_one_blue">
+
+            <TextView
+                android:id="@+id/foldername"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center|start"
+                android:text="@string/tracker_foldername"
+                android:textColor="@color/cardview_light_background"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                />
+
+        </androidx.cardview.widget.CardView>
+
+        <com.e.tracker.Support.image.AutoFitRecyclerView
+            android:id="@+id/recycler"
+            android:layout_below="@+id/head"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/white_text_color"
+            android:columnWidth="@dimen/picture_column_width">
+
+        </com.e.tracker.Support.image.AutoFitRecyclerView>
+
+        <ImageView
+            android:id="@+id/image_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/common_google_signin_btn_text_dark_focused"
+            app:srcCompat="@drawable/ic_brightness_1_orange_12dp"
+            tools:srcCompat="@tools:sample/avatars"
+            >
+
+        </ImageView>
+    </RelativeLayout>
+
+    <ProgressBar
+        android:id="@+id/loader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        tools:visibility="gone" />
+
+</FrameLayout>

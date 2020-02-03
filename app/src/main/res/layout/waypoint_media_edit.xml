@@ -28,7 +28,6 @@
                 android:id="@+id/waypoint_media_image_header"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/schema_one_green"
                 android:orientation="horizontal">
 
                 <TextView
@@ -39,17 +38,16 @@
                     android:layout_weight="1"
                     android:paddingTop="4dp"
                     android:text="@string/waypoint_image_header"
-                    android:textColor="@color/white_text_color"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                    android:textSize="18sp" />
 
                 <ImageButton
                     android:id="@+id/waypoint_media_image_add_btn"
+                    style="@style/Widget.AppCompat.ImageButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_weight="0"
-                    android:backgroundTint="@color/trackListItem_background"
                     app:srcCompat="@drawable/ic_add_circle_black_24dp" />
 
                 <ImageButton
@@ -58,7 +56,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_weight="0"
-                    android:backgroundTint="@color/schema_one_red"
                     app:srcCompat="@drawable/ic_remove_circle_black_24dp" />
 
             </LinearLayout>
@@ -97,7 +94,6 @@
                 android:id="@+id/waypoint_media_video_header"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/schema_one_green"
                 android:orientation="horizontal">
 
                 <TextView
@@ -108,9 +104,8 @@
                     android:layout_marginTop="4dp"
                     android:layout_weight="1"
                     android:text="@string/waypoint_video_header"
-                    android:textColor="@color/white_text_color"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                    android:textSize="18sp" />
 
                 <ImageButton
                     android:id="@+id/waypoint_media_video_add_btn"
@@ -118,7 +113,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_weight="0"
-                    android:backgroundTint="@color/trackListItem_background"
                     app:srcCompat="@drawable/ic_add_circle_black_24dp" />
 
                 <ImageButton
@@ -127,7 +121,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_weight="0"
-                    android:backgroundTint="@color/schema_one_red"
                     app:srcCompat="@drawable/ic_remove_circle_black_24dp" />
 
             </LinearLayout>
@@ -166,7 +159,6 @@
                 android:id="@+id/waypoint_media_audio_header"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/schema_one_green"
                 android:orientation="horizontal">
 
                 <TextView
@@ -177,9 +169,8 @@
                     android:layout_marginTop="4dp"
                     android:layout_weight="1"
                     android:text="@string/waypoint_audio_header"
-                    android:textColor="@color/white_text_color"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                    android:textSize="18sp" />
 
                 <ImageButton
                     android:id="@+id/waypoint_media_audio_add_btn"
@@ -187,7 +178,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_weight="0"
-                    android:backgroundTint="@color/trackListItem_background"
                     app:srcCompat="@drawable/ic_add_circle_black_24dp" />
 
                 <ImageButton
@@ -196,7 +186,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_weight="0"
-                    android:backgroundTint="@color/schema_one_red"
                     app:srcCompat="@drawable/ic_remove_circle_black_24dp" />
 
             </LinearLayout>

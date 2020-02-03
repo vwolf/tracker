@@ -17,8 +17,18 @@
             android:checkable="true"
             android:checked="false"
             android:enabled="true"
-            android:title="@string/menu_wayPoint"></item>
+            android:title="@string/menu_wayPoint">
+        </item>
 
     </group>
+
+
+    <item
+        android:id="@+id/menu_lockPath"
+        android:checkable="true"
+        android:checked="false"
+        android:enabled="true"
+        android:title="@string/menu_lockTrack"></item>
+
 
 </menu>

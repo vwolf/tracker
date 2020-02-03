@@ -15,8 +15,10 @@
             android:layout_marginTop="42dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
 
         <LinearLayout
             android:id="@+id/map_toolbar"
@@ -115,6 +117,17 @@
                 android:src="@drawable/ic_insert_comment_black_24dp" />
         </LinearLayout>
 
+        <ImageView
+            android:id="@+id/fullscreen_image"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@color/common_google_signin_btn_text_dark_focused"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/map_toolbar"
+            tools:src="@tools:sample/avatars" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -29,10 +29,26 @@
             </intent-filter>
         </activity>
         <activity android:name=".osm.OsmActivity"></activity>
+        <activity android:name=".Support.image.ImageDisplay"></activity>
         <service android:name=".osm.LocationTrackingService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true">
+        </service>
 <!--        <service android:name=".osm.ForegroundService"></service>-->
+        <provider
+            android:authorities="com.e.tracker.fileprovider"
+            android:name="androidx.core.content.FileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths">
+            </meta-data>
+        </provider>
+<!--        <receiver android:name=".MyBroadcastReceiver"-->
+<!--            android:exported="true">-->
+<!--        </receiver>-->
+
     </application>
 
 </manifest>

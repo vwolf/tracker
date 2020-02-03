@@ -55,11 +55,16 @@
             android:layout_marginBottom="4dp"
             android:orientation="vertical">
 
+            <View
+                android:id="@+id/divider6"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/trackList_background" />
+
             <LinearLayout
                 android:id="@+id/waypoint_show_media_image_header"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/schema_one_green"
                 android:orientation="horizontal">
 
                 <TextView
@@ -71,14 +76,13 @@
                     android:layout_weight="1"
                     android:paddingTop="4dp"
                     android:text="@string/waypoint_image_header"
-                    android:textColor="@color/white_text_color"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                    android:textSize="18sp" />
 
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/waypoint_shwo_media_imageview"
+                android:id="@+id/waypoint_show_media_imageview"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_marginTop="4dp"
@@ -95,7 +99,7 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/waypoint_shwo_media_video"
+            android:id="@+id/waypoint_show_media_video"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp"
@@ -105,7 +109,6 @@
                 android:id="@+id/waypoint_show_media_video_header"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/schema_one_green"
                 android:orientation="horizontal">
 
                 <TextView
@@ -117,9 +120,8 @@
                     android:layout_marginBottom="4dp"
                     android:layout_weight="1"
                     android:text="@string/waypoint_video_header"
-                    android:textColor="@color/white_text_color"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                    android:textSize="18sp" />
 
             </LinearLayout>
 
@@ -151,7 +153,6 @@
                 android:id="@+id/waypoint_show_media_audio_header"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/schema_one_green"
                 android:orientation="horizontal">
 
                 <TextView
@@ -163,9 +164,8 @@
                     android:layout_marginBottom="4dp"
                     android:layout_weight="1"
                     android:text="@string/waypoint_audio_header"
-                    android:textColor="@color/white_text_color"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                    android:textSize="18sp" />
 
             </LinearLayout>
 
@@ -193,6 +193,7 @@
         style="?android:attr/buttonBarStyle"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/trackListItem_background"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -201,19 +202,22 @@
 
         <Button
             android:id="@+id/waypoint_btn_edit"
-            style="?android:attr/buttonBarButtonStyle"
+            style="@style/Widget.MaterialComponents.Button.TextButton.Snackbar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/tracker_edit" />
+            android:background="@color/trackListItem_background"
+            android:text="@string/tracker_edit"
+            android:textColor="@color/trackList_background" />
 
         <Button
             android:id="@+id/waypoint_btn_delete"
-            style="?android:attr/buttonBarButtonStyle"
+            style="@style/Widget.MaterialComponents.Button.TextButton.Snackbar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/tracker_delete" />
+            android:text="@string/tracker_delete"
+            android:textColor="@color/trackList_background" />
     </LinearLayout>
 
 

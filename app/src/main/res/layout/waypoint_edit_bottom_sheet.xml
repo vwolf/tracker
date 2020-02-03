@@ -71,11 +71,12 @@
 
         <Button
             android:id="@+id/waypoint_edit_save"
-            style="?android:attr/buttonBarButtonStyle"
+            style="@style/Widget.MaterialComponents.Button.TextButton.Snackbar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="#81C784"
+            android:background="@color/trackListItem_background"
+            android:backgroundTint="@color/trackListItem_background"
             android:text="@string/tracker_update"
             app:cornerRadius="0dp" />
 

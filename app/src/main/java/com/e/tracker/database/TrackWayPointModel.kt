@@ -34,5 +34,11 @@ data class TrackWayPointModel (
 
     //@TypeConverter(Converters.class)
     @ColumnInfo(name = "waypointImages")
-    var wayPointImages:  List<String>
+    var wayPointImages:  List<String>,
+
+    @ColumnInfo(name = "wayPointVideos")
+    var wayPointVideos: List<String>,
+
+    @ColumnInfo(name = "wayPointAudios")
+    var wayPointAudios: List<String>
 )

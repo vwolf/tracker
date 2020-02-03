@@ -12,4 +12,6 @@
     <dimen name="map_bottom_sheet_default_margin">16dp</dimen>
     <dimen name="map_bottom_sheet_normal_padding">16dp</dimen>
 
+    <dimen name="folder_column_widt">120dp</dimen>
+    <dimen name="picture_column_width">90dp</dimen>
 </resources>

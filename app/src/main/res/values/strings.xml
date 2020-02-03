@@ -2,6 +2,8 @@
     <string name="app_name">Tracker</string>
     <string name="menu_help">Help</string>
     <string name="menu_wayPoint">Waypoints</string>
+    <string name="menu_lockTrack">Lock Track</string>
+
     <string name="track_name_hint">Name</string>
     <string name="track_description_hint">Description</string>
     <string name="track_location_hint">Location</string>
@@ -27,6 +29,7 @@
     <string name="tracker_save">Save</string>
     <string name="tracker_cancel">Cancel</string>
     <string name="tracker_update">Update</string>
+    <string name="tracker_foldername">Folder Name</string>
     <string name="waypoint_image_description">Image selected for waypoint</string>
     <string name="waypoint_video_header">Videos</string>
     <string name="waypoint_image_header">Images</string>

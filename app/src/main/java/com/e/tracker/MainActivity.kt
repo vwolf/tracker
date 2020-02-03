@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity(){
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
         menu?.findItem(R.id.menu_showWaypoints)?.isVisible = false
+        menu?.findItem(R.id.menu_lockPath)?.isVisible = false
         //invalidateOptionsMenu()
 
         return super.onCreateOptionsMenu(menu)
@@ -57,14 +58,14 @@ class MainActivity : AppCompatActivity(){
                 return true
             }
 
-            R.id.menu_showWaypoints -> {
-                if (item.isChecked)
-                    item.isChecked = false
-                else
-                    item.isChecked = true
-
-                return true
-            }
+//            R.id.menu_showWaypoints -> {
+//                if (item.isChecked)
+//                    item.isChecked = false
+//                else
+//                    item.isChecked = true
+//
+//                return true
+//            }
 
             android.R.id.home -> {
                 super.onBackPressed()
