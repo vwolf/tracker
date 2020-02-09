@@ -29,7 +29,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".osm.OsmActivity"></activity>
-        <activity android:name=".Support.image.ImageDisplay"></activity>
+        <activity android:name=".support.image.ImageDisplay"></activity>
         <service android:name=".osm.LocationTrackingService"
             android:enabled="true"
             android:exported="true">

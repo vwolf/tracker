@@ -10,8 +10,8 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.databinding.DataBindingUtil
-import com.e.tracker.Support.*
-import com.e.tracker.Support.Permissions
+import com.e.tracker.support.*
+import com.e.tracker.support.Permissions
 import com.e.tracker.databinding.ActivityMainBinding
 import com.e.tracker.osm.OSM_LOG
 

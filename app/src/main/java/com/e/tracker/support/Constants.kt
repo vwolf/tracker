@@ -1,4 +1,4 @@
-package com.e.tracker.Support
+package com.e.tracker.support
 
 //const val OSM_TRACK = 1001
 //const val OSM_ADDRESS = 1999

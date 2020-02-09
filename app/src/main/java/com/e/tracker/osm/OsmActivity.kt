@@ -5,7 +5,9 @@ import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Parcelable
 import android.os.StrictMode
+import android.transition.Fade
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -14,18 +16,20 @@ import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import com.e.tracker.R
-import com.e.tracker.Support.OsmMapType
-import com.e.tracker.Support.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION
-import com.e.tracker.Support.PERMISSIONS_REQUEST_CAMERA
+import com.e.tracker.support.OsmMapType
+import com.e.tracker.support.PERMISSIONS_REQUEST_CAMERA
 import com.e.tracker.database.*
 import com.e.tracker.track.TrackObject
 import com.e.tracker.track.TrackSourceType
 import com.e.tracker.xml.gpx.GPXParser
 import com.e.tracker.xml.gpx.domain.TrackSegment
 import com.e.tracker.xml.gpx.domain.WayPoint
-import com.e.tracker.Support.Permissions
-import com.e.tracker.Support.image.ImageDisplay
+import com.e.tracker.support.Permissions
+import com.e.tracker.support.image.ImageDisplay
 import com.e.tracker.osm.dialogs.OsmBottomSheet
+import com.e.tracker.support.image.PicHolder
+import com.e.tracker.support.image.PictureBrowserFragment
+import com.e.tracker.support.image.PictureFacer
 import kotlinx.coroutines.*
 import org.osmdroid.util.GeoPoint
 import java.io.File
@@ -418,12 +422,56 @@ class OsmActivity : AppCompatActivity(),
 
 
     override fun onImageClick(wayPointImages: List<String>) {
-        Log.i(OSM_LOG, "FragmentOsmMap.onImageClick")
+        Log.i(OSM_LOG, "OsmActivity.onImageClick")
 
         val arrayListWayPointImages = arrayListOf<String>()
         arrayListWayPointImages.addAll(wayPointImages)
         val b = Bundle()
         b.putStringArrayList("IMAGESPATH", arrayListWayPointImages)
+
+        val intent = Intent(baseContext, ImageDisplay::class.java)
+        intent.putExtras(b)
+        startActivityForResult(intent, 99)
+    }
+
+
+//    override fun onImageClickRecyclerView(
+//        picHolder: PicHolder,
+//        position: Int,
+//        pics: ArrayList<PictureFacer>
+//    ) {
+//        val browser = PictureBrowserFragment.newInstance(pics, position, this@OsmActivity)
+//
+//        browser.enterTransition = Fade()
+//        browser.exitTransition = Fade()
+//
+//        supportFragmentManager
+//            .beginTransaction()
+//            .addSharedElement(picHolder.picture, position.toString() + "picture")
+//            .add(R.id.osm_container, browser)
+//            .addToBackStack(null)
+//            .commit()
+//    }
+
+    /**
+     * Start activity
+     *
+     */
+    override fun onImageClickRecyclerView (
+        picHolder: PicHolder,
+        position: Int,
+        pics: ArrayList<PictureFacer>
+    ) {
+
+        val arrayListWayPointImages = arrayListOf<String>()
+        val b = Bundle()
+        b.putStringArrayList("IMAGESPATH", arrayListWayPointImages)
+        b.putInt("POSITION", position)
+        val intent = Intent(baseContext, ImageDisplay::class.java)
+        intent.putExtras(b)
+
+        intent.putParcelableArrayListExtra("pics", pics as java.util.ArrayList<out Parcelable>)
+        startActivityForResult(intent, 99)
     }
 
 

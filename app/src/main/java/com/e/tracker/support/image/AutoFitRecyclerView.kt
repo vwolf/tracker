@@ -1,4 +1,4 @@
-package com.e.tracker.Support.image
+package com.e.tracker.support.image
 
 import android.R
 import android.content.Context

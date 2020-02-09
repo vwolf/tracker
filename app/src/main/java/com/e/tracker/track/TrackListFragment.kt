@@ -12,7 +12,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import com.e.tracker.R
-import com.e.tracker.Support.OsmMapType
+import com.e.tracker.support.OsmMapType
 import com.e.tracker.database.TrackDatabase
 import com.e.tracker.database.TrackModel
 import com.e.tracker.databinding.FragmentTrackListBinding

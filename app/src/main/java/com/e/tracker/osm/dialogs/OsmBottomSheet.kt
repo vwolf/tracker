@@ -27,6 +27,8 @@ import com.e.tracker.osm.OSM_LOG
 import com.e.tracker.osm.WAYPOINT_IMAGEFROMCAMERA
 import com.e.tracker.osm.WAYPOINT_IMAGEFROMGALLERY
 import com.e.tracker.osm.WAYPOINT_VIDEOFROMGALLERY
+import com.e.tracker.support.image.PicHolder
+import com.e.tracker.support.image.PictureFacer
 import com.e.tracker.track.TrackViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.android.synthetic.main.waypoint_bottom_sheet.*
@@ -42,6 +44,7 @@ import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 /**
@@ -380,6 +383,9 @@ class OsmBottomSheet(
     }
 
 
+    fun loadImageGallery(picHolder: PicHolder, position: Int, pics: ArrayList<PictureFacer>) {
+        mListener?.onImageClickRecyclerView(picHolder, position, pics)
+    }
     /**
      * Make TrackWayPointModel and send to listener
      * 
@@ -455,6 +461,7 @@ class OsmBottomSheet(
         fun onUpdateWaypoint(wayPointModel: TrackWayPointModel, dialog: OsmBottomSheet)
         fun onDeleteWaypoint(wayPointModel: TrackWayPointModel, dialog: OsmBottomSheet)
         fun onImageClick(wayPointImages : List<String>)
+        fun onImageClickRecyclerView(picHolder: PicHolder, position: Int, pics: ArrayList<PictureFacer>)
     }
 
 

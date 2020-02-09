@@ -7,29 +7,35 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
+import android.transition.Fade
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import com.e.tracker.R
 import com.e.tracker.database.TrackWayPointModel
 import com.e.tracker.osm.OSM_LOG
 import com.e.tracker.osm.WAYPOINT_IMAGEFROMCAMERA
 import com.e.tracker.osm.WAYPOINT_IMAGEFROMGALLERY
+import com.e.tracker.support.image.*
+import kotlinx.android.synthetic.main.activity_image_display.*
 import kotlinx.android.synthetic.main.waypoint_bottom_sheet.*
 import kotlinx.android.synthetic.main.waypoint_image.*
 import kotlinx.android.synthetic.main.waypoint_media_edit.*
+import kotlinx.android.synthetic.main.waypoint_recycler_images.*
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * Load image from gallery
  * Take image with camera and save to gallery
  *
  */
-class ImageService  {
+class ImageService  : ItemClickListener {
 
     lateinit var currentImagePath: String
 
@@ -60,20 +66,58 @@ class ImageService  {
      * Images when [OsmBottomSheet] in display mode
      */
     fun showImages( wayPointImages : List<String>) {
-        for ( i in wayPointImages) {
 
-            val imageView = newImageView()
-            osmBottomSheet.waypoint_show_media_imageview.addView(imageView)
+        showImagesInRecyclerView(wayPointImages)
+//        for ( i in wayPointImages) {
+//
+//            val imageView = newImageView()
+//            osmBottomSheet.waypoint_show_media_imageview.addView(imageView)
+//
+//            val bitmap = BitmapFactory.decodeStream(
+//                osmBottomSheet.requireContext().contentResolver.openInputStream(i.toUri())
+//            )
+//            imageView.setImageBitmap(bitmap)
+//
+//            imageView.setOnClickListener {
+//                imageBig(i)
+//            }
+//        }
+    }
 
-            val bitmap = BitmapFactory.decodeStream(
-                osmBottomSheet.requireContext().contentResolver.openInputStream(i.toUri())
-            )
-            imageView.setImageBitmap(bitmap)
+    fun showImagesInRecyclerView( wayPointImages: List<String>) {
+        var imageRecycler = osmBottomSheet.waypoint_recycler
+        imageRecycler.hasFixedSize()
 
-            imageView.setOnClickListener {
-                imageBig(i)
+        var images = ArrayList<PictureFacer>()
+        if (wayPointImages.isNotEmpty()) {
+            for ( imagePath in wayPointImages) {
+                var pictureFacer = PictureFacer()
+                pictureFacer.picturePath = imagePath
+
+                images.add(pictureFacer)
             }
         }
+
+        imageRecycler.adapter = PictureAdapter(images, osmBottomSheet.requireActivity().baseContext, this)
+    }
+
+    override fun onPicClicked(pictureFolderPath: String, folderName: String) {}
+
+
+    override fun onPicClicked(holder: PicHolder, position: Int, pics: ArrayList<PictureFacer>) {
+        Log.i(OSM_LOG, "ImageService onPicClicked: position: $position")
+        osmBottomSheet.loadImageGallery(holder, position, pics )
+
+//        val browser = PictureBrowserFragment.newInstance(pics, position, osmBottomSheet.requireActivity())
+//        browser.enterTransition = Fade()
+//        browser.exitTransition = Fade()
+//
+//        osmBottomSheet.requireActivity().supportFragmentManager
+//            .beginTransaction()
+//            .addSharedElement(holder.picture, position.toString() + "picture")
+//            .add(R.id.displayContainer, browser)
+//            .addToBackStack(null)
+//            .commit()
     }
 
     /**

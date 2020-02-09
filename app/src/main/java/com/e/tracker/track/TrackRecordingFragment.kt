@@ -12,22 +12,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import com.e.tracker.R
-import com.e.tracker.Support.OsmMapType
+import com.e.tracker.support.OsmMapType
 import com.e.tracker.database.TrackDatabase
 import com.e.tracker.database.TrackModel
 import com.e.tracker.databinding.FragmentTrackRecordingBinding
 import com.e.tracker.osm.OsmActivity
-import kotlinx.android.synthetic.main.fragment_new_track.*
 import kotlinx.android.synthetic.main.fragment_track_recording.*
 import org.joda.time.DateTime
 import org.json.JSONObject
-import java.lang.Exception
 
 
 /**

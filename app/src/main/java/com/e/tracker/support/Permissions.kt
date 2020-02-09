@@ -1,4 +1,4 @@
-package com.e.tracker.Support
+package com.e.tracker.support
 
 import android.Manifest
 import android.content.Context

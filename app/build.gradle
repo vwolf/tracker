@@ -72,4 +72,6 @@ dependencies {
     implementation "androidx.preference:preference:1.1.0"
 
     implementation "joda-time:joda-time:2.10.5"
+
+    implementation "com.github.bumptech.glide:glide:4.9.0"
 }

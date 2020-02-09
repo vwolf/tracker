@@ -83,14 +83,14 @@
 
             <LinearLayout
                 android:id="@+id/waypoint_show_media_imageview"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginTop="4dp"
                 android:orientation="horizontal"
                 android:visibility="visible">
 
                 <include
-                    layout="@layout/waypoint_image"
+                    layout="@layout/waypoint_recycler_images"
                     tools:visibility="invisible" />
 
             </LinearLayout>
