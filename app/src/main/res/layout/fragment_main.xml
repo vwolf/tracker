@@ -12,7 +12,7 @@
         android:id="@+id/main_constraint"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#962C0C">
+        android:background="@color/schema_one_red_dark">
 
         <LinearLayout
             android:id="@+id/main_layout"

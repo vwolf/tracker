@@ -7,42 +7,58 @@
     android:id="@+id/displayContainer">
 
     <RelativeLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <androidx.cardview.widget.CardView
-            android:id="@+id/head"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            app:cardBackgroundColor="@color/schema_one_blue"
-            android:layout_gravity="top"
-            android:visibility="gone">
+        <!--        <androidx.cardview.widget.CardView-->
+        <!--            android:id="@+id/head"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="50dp"-->
+        <!--            android:layout_gravity="center|top"-->
+        <!--            android:visibility="visible"-->
+        <!--            app:cardBackgroundColor="@color/schema_one_blue"-->
+        <!--            app:layout_constraintEnd_toEndOf="parent">-->
 
-            <TextView
-                android:id="@+id/folderName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center|start"
-                android:text="@string/tracker_foldername"
-                android:textColor="@color/white_text_color"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp" />
+        <!--            <TextView-->
+        <!--                android:id="@+id/folderName"-->
+        <!--                android:layout_width="wrap_content"-->
+        <!--                android:layout_height="wrap_content"-->
+        <!--                android:layout_gravity="center|start"-->
+        <!--                android:layout_marginLeft="10dp"-->
+        <!--                android:layout_marginRight="10dp"-->
+        <!--                android:text="@string/tracker_foldername"-->
+        <!--                android:textColor="@color/white_text_color"-->
+        <!--                android:textSize="18sp"-->
+        <!--                android:textStyle="bold" />-->
 
-        </androidx.cardview.widget.CardView>
+        <!--        </androidx.cardview.widget.CardView>-->
 
         <com.e.tracker.support.image.AutoFitRecyclerView
             android:id="@+id/recycler"
-            android:layout_below="@+id/head"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/white_text_color"
-            android:columnWidth="@dimen/picture_column_width">
+            android:layout_below="@id/toolbar"
+            android:background="@color/design_default_color_background"
+            android:columnWidth="@dimen/picture_column_width"
+            android:visibility="gone">
 
         </com.e.tracker.support.image.AutoFitRecyclerView>
 
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimary"
+            android:minHeight="?attr/actionBarSize"
+            android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+
+        </androidx.appcompat.widget.Toolbar>
+
     </RelativeLayout>
+
+
+
 
     <ProgressBar
         android:id="@+id/loader"

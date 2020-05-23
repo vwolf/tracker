@@ -7,7 +7,8 @@
     <color name="color_main_button">#FFFFFF</color>
 
     <color name="green_color">#388310</color>
-    <color name="white_text_color">#F0F0F0</color>
+    <color name="white_text_color">#FBF9F9</color>
+    <color name="white_texthint_color">#80FBF9F9</color>
 
     <color name="icon_not_selected">#555555</color>
     <color name="icon_selected">#FFFFFF</color>
@@ -15,11 +16,15 @@
     <color name="trackList_background">#0D47A1</color>
     <color name="trackListItem_background">#AED581</color>
 
+    <color name="background_dark">#0B0B0B</color>
     <!-- Color Schema -->
+    <color name="schema_one_toolbar">#64778d</color>
     <color name="schema_one_blue_light">#00A3BF</color>
     <color name="schema_one_yellow">#EBB000</color>
     <color name="schema_one_blue">#007C91</color>
+    <color name="schema_one_blue_dark">#03198A</color>
     <color name="schema_one_dark">#003640</color>
+    <color name="schema_one_red_dark">#962C0C</color>
     <color name="schema_one_red">#F05800</color>
     <color name="schema_one_green">#388310</color>
 </resources>

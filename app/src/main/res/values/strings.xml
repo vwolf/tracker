@@ -10,6 +10,7 @@
     <string name="track_startCoords_hint">Start Coordinates</string>
     <string name="track_latitude_hint">Latitude</string>
     <string name="track_longitude_hint">Longitude</string>
+    <string name="track_staticTrack_hint">Static Track</string>
     <string name="track_button_submit">Submit</string>
     <string name="track_button_edit">Edit</string>
     <string name="map_toolbar_edit">Edit path</string>
@@ -19,7 +20,7 @@
     <string name="track_distance">Track Distance</string>
     <string name="track_elevation">Track Elevation</string>
 
-    <string name="trackrecording_header">Start recording</string>
+    <string name="trackrecording_header">Start recording to new track</string>
     <string name="trackrecording_btn_start">Start</string>
     <string name="waypoint_dialog_header">Waypoint header</string>
     <string name="waypoint_dialog_text">Waypoint text</string>
@@ -35,4 +36,6 @@
     <string name="waypoint_image_header">Images</string>
     <string name="waypoint_audio_header">Audios</string>
 
+    <string name="selectTrack_dialog_title">Select Track</string>
+    <string name="selectTrack_dialog_message">Track to display on map</string>
 </resources>

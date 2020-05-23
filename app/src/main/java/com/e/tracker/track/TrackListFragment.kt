@@ -1,5 +1,6 @@
 package com.e.tracker.track
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.os.Parcelable
@@ -9,7 +10,9 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
+//import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import com.e.tracker.R
 import com.e.tracker.support.OsmMapType
@@ -75,6 +78,8 @@ class TrackListFragment : Fragment(), TrackEditDialogFragment.TrackEditDialogLis
         val trackListViewModel = ViewModelProviders.of(this, viewModelFactory)
             .get(TrackViewModel::class.java)
 
+        //val trackListViewModel = ViewModelProviders.of(this).get(TrackViewModel::class.java)
+
         // To use the ViewModel with data binding give the binding object a reference to it
         binding.trackListViewModel = trackListViewModel
         binding.lifecycleOwner = this
@@ -119,6 +124,7 @@ class TrackListFragment : Fragment(), TrackEditDialogFragment.TrackEditDialogLis
     }
 
 
+    @SuppressLint("RestrictedApi")
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
 
         MenuBuilder(context).setOptionalIconsVisible(true)
@@ -236,4 +242,10 @@ data class TrackFileParcel(val filesList: List<File>) : Parcelable {
 data class TrackParcel(val aId: Long) : Parcelable {
     @IgnoredOnParcel
     val trackId: Long = aId
+}
+
+@Parcelize
+data class TracksName(val tracks: Map<String, String>) : Parcelable {
+    @IgnoredOnParcel
+    val trackNames : Map<String, String> = tracks
 }

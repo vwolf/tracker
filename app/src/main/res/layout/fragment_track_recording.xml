@@ -18,12 +18,13 @@
         android:background="#8BC34A">
 
         <LinearLayout
-            android:id="@+id/linearLayout"
-            android:layout_width="match_parent"
+            android:id="@+id/start_recording"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
+            android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -36,7 +37,7 @@
                 android:layout_marginTop="16dp"
                 android:text="@string/trackrecording_header"
                 android:textAlignment="center"
-                android:textSize="24sp" />
+                android:textSize="18sp" />
 
             <EditText
                 android:id="@+id/trackrecording_name"
@@ -48,21 +49,24 @@
                 android:importantForAutofill="no"
                 android:inputType="textAutoComplete"
                 android:paddingBottom="24dp"
-                android:singleLine="true" />
+                android:singleLine="true"
+                android:textAlignment="center" />
+
+            <Button
+                android:id="@+id/trackrecording_start"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Dialog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="32dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginEnd="32dp"
+                android:background="#FFF176"
+                android:text="@string/trackrecording_btn_start"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp"
+                app:iconTint="@color/color_main_button" />
 
         </LinearLayout>
-
-        <Button
-            android:id="@+id/trackrecording_start"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginEnd="32dp"
-            android:text="@string/trackrecording_btn_start"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

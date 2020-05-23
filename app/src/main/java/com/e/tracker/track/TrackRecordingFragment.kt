@@ -72,16 +72,21 @@ class TrackRecordingFragment  : Fragment() {
             println("Permission denied READ_EXTERNAL_STORAGE")
             Toast.makeText(
                 context,
-                 "No permission to access loction!",
+                 "No permission to access location!",
                 Toast.LENGTH_LONG
             ).show()
             binding.trackrecordingStart.isEnabled = false
             //makeRequest(Manifest.permission.READ_EXTERNAL_STORAGE, PERMISSIONS_REQUEST_READ_EXTERNAL)
         } else {
             println("Permission granted READ_EXTERNAL_STORAGE")
+
+            binding.trackrecordingStart.isEnabled = false
+            binding.trackrecordingStart.alpha = 0.5F
+
             // get current location
             // track recording only works if location is enabled
             locationListener = getLocation()
+
         }
 
         binding.trackrecordingStart.setOnClickListener {
@@ -109,7 +114,7 @@ class TrackRecordingFragment  : Fragment() {
      *
      */
     private fun startRecording( trackViewModel : TrackViewModel?) {
-        if (currentLocation?.latitude > 0.0) {
+        if (currentLocation.latitude > 0.0) {
             newTrack.trackName = trackrecording_name.text.toString()
             newTrack.trackDescription = "new track recording"
 
@@ -139,6 +144,8 @@ class TrackRecordingFragment  : Fragment() {
             newBundle.putString("TYPE", "database")
             newBundle.putLong("ID", result)
 
+            locationManager.removeUpdates(locationListener)
+
             val intent = Intent(requireContext(), OsmActivity::class.java)
             intent.putExtras(newBundle)
             startActivityForResult(intent, OsmMapType.OSM_TRACK.value)
@@ -157,22 +164,28 @@ class TrackRecordingFragment  : Fragment() {
                 val longitude = location?.longitude
 
                 currentLocation = location!!
+
+                trackrecording_start.alpha = 1.0F
+                trackrecording_start.isEnabled = true
+
                 println("locationManager location: ${location.toString()}")
             }
 
             override fun onProviderEnabled(p0: String?) {
-
+                trackrecording_start.alpha = 1.0F
+                trackrecording_start.isEnabled = true
             }
 
             override fun onProviderDisabled(p0: String?) {
-
+                trackrecording_start.alpha = 0.5F
+                trackrecording_start.isEnabled = false
             }
 
             override fun onStatusChanged(p0: String?, p1: Int, p2: Bundle?) {}
         }
 
         try {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 0f, locationListener)
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000L, 10f, locationListener)
 
         } catch (e : SecurityException) {
             Toast.makeText(context, "Fehler gpx", Toast.LENGTH_LONG).show()

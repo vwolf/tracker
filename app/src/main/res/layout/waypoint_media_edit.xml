@@ -8,7 +8,9 @@
         android:id="@+id/waypoint_media_main"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:background="@color/background_dark"
+        android:orientation="vertical"
+        android:paddingBottom="8dp">
 
 
         <LinearLayout
@@ -38,7 +40,7 @@
                     android:layout_weight="1"
                     android:paddingTop="4dp"
                     android:text="@string/waypoint_image_header"
-                    android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                    android:textColor="@color/white_text_color"
                     android:textSize="18sp" />
 
                 <ImageButton
@@ -48,7 +50,9 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_weight="0"
-                    app:srcCompat="@drawable/ic_add_circle_black_24dp" />
+                    android:backgroundTint="#10100F"
+                    android:tint="#F6F2F2"
+                    app:srcCompat="@drawable/ic_add_black_24dp" />
 
                 <ImageButton
                     android:id="@+id/waypoint_media_image_delete_btn"
@@ -56,7 +60,9 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_weight="0"
-                    app:srcCompat="@drawable/ic_remove_circle_black_24dp" />
+                    android:backgroundTint="#131212"
+                    android:tint="#EAE4E4"
+                    app:srcCompat="@drawable/ic_remove_black_24dp" />
 
             </LinearLayout>
 
@@ -104,7 +110,7 @@
                     android:layout_marginTop="4dp"
                     android:layout_weight="1"
                     android:text="@string/waypoint_video_header"
-                    android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                    android:textColor="@color/white_text_color"
                     android:textSize="18sp" />
 
                 <ImageButton
@@ -169,7 +175,7 @@
                     android:layout_marginTop="4dp"
                     android:layout_weight="1"
                     android:text="@string/waypoint_audio_header"
-                    android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                    android:textColor="@color/white_text_color"
                     android:textSize="18sp" />
 
                 <ImageButton

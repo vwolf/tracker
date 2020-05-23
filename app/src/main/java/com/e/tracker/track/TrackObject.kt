@@ -45,6 +45,9 @@ class TrackObject {
     var wayPoints = mutableListOf<TrackWayPointModel>()
         set(value) = updateTrack()
 
+    // this is the reference track
+    var staticTrack: String? = null
+
     fun updateTrack() {
         Log.i(OSM_LOG, "UpdateMap()")
 

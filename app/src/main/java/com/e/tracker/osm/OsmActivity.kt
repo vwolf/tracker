@@ -182,6 +182,8 @@ class OsmActivity : AppCompatActivity(),
             trackObject.latitude = trackModel?.latitude ?: 0.0
             trackObject.longitude = trackModel?.longitude ?: 0.0
 
+            trackObject.staticTrack = trackModel?.staticTrack
+
             // get coords for track
             uiScope.launch {
                 val trackCoords = getCoords(id)

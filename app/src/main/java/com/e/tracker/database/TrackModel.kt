@@ -53,6 +53,8 @@ data class TrackModel (
     var longitude: Double? = 0.0,
 
     @ColumnInfo(name = "startCoordinates")
-    var startCoordinates: String = "startCoordinates"
+    var startCoordinates: String = "startCoordinates",
 
+    @ColumnInfo(name = "staticTrack")
+    var staticTrack: String = "staticTrack"
 )

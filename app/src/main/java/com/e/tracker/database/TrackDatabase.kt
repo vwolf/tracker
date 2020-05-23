@@ -3,7 +3,7 @@ package com.e.tracker.database
 import android.content.Context
 import androidx.room.*
 
-@Database(entities = [TrackModel::class, TrackCoordModel::class, TrackWayPointModel::class], version = 1, exportSchema = false)
+@Database(entities = [TrackModel::class, TrackCoordModel::class, TrackWayPointModel::class], version = 2, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class TrackDatabase : RoomDatabase() {
 

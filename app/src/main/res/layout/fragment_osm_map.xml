@@ -42,7 +42,8 @@
                 android:background="#03FFFFFF"
                 android:contentDescription="@string/map_toolbar_edit"
                 android:scaleType="center"
-                android:src="@drawable/ic_location_off_black_24dp" />
+                android:src="@drawable/ic_location_on_black_24dp"
+                android:tint="@drawable/toolbar_imagebutton_selector"/>
 
             <ImageButton
                 android:id="@+id/map_toolbar_btn_addPoint"
@@ -77,7 +78,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="#03FFFFFF"
-                android:src="@drawable/ic_insert_comment_black_24dp" />
+                android:src="@drawable/ic_insert_comment_black_24dp"
+                android:tint="@drawable/toolbar_imagebutton_selector"/>
 
             <ImageButton
                 android:id="@+id/map_toolbar_btn_addItem"
@@ -114,7 +116,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="#03FFFFFF"
-                android:src="@drawable/ic_insert_comment_black_24dp" />
+                android:src="@drawable/ic_insert_comment_black_24dp"
+                android:tint="#000000" />
         </LinearLayout>
 
         <ImageView

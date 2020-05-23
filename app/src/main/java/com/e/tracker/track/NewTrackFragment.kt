@@ -1,6 +1,9 @@
 package com.e.tracker.track
 
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
@@ -9,17 +12,20 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ObservableField
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import com.e.tracker.R
 import com.e.tracker.database.TrackDatabase
 import com.e.tracker.database.TrackModel
 import com.e.tracker.databinding.FragmentNewTrackBinding
+import com.e.tracker.osm.MapBottomSheetDialog
 import com.e.tracker.osm.OsmActivity
 import kotlinx.android.synthetic.main.fragment_new_track.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import org.json.JSONObject
+import java.io.File
 
 const val GET_LOCATION_ADDRESS = 1
 /**
@@ -33,6 +39,9 @@ class NewTrackFragment : Fragment() {
     private var trackId = 0L
     private var trackLoaded = TrackModel()
 
+    private var gpxFilePaths = listOf<File>()
+    private var gpxFileNames = mapOf<String, String>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -43,6 +52,11 @@ class NewTrackFragment : Fragment() {
                 trackId = track.trackId
                 println("Edit track with id $trackId")
             }
+        }
+
+        val trackNames = arguments?.getParcelable<TracksName>("gpxFileNames")
+        if (trackNames != null ) {
+            gpxFileNames = trackNames.trackNames
         }
 
     }
@@ -63,7 +77,7 @@ class NewTrackFragment : Fragment() {
         val coordSource = TrackDatabase.getInstance(application).trackCoordDatabaseDao
         val viewModelFactory = TrackViewModelFactory(dataSource, coordSource, application)
 
-        val trackViewModel = ViewModelProviders.of(
+        val trackViewModel = ViewModelProvider(
             this, viewModelFactory).get(TrackViewModel::class.java)
 
         binding.newTrackViewModel = trackViewModel
@@ -71,6 +85,8 @@ class NewTrackFragment : Fragment() {
         // handle type buttons events
         binding.buttonWalk.setOnClickListener { trackType.set("walking") }
         binding.buttonBike.setOnClickListener { trackType.set("biking") }
+
+        binding.buttonStaticTrack.setOnClickListener { getStaticTrack(binding) }
 
         if (trackId > 0L) {
             GlobalScope.async {
@@ -90,6 +106,7 @@ class NewTrackFragment : Fragment() {
                     track_location.setText(trackLoaded.location)
                     track_latitude.setText(trackLoaded.latitude.toString())
                     track_longitude.setText(trackLoaded.longitude.toString())
+                    track_static.text = trackLoaded.staticTrack
 
                     trackType.set("walking")
                     binding.trackType = trackType
@@ -131,10 +148,12 @@ class NewTrackFragment : Fragment() {
 
             trackType.set(trackLoaded.type)
 
+            track_static.setText(trackLoaded.staticTrack)
         }
     }
 
 
+    @SuppressLint("RestrictedApi")
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
 
         inflater.inflate(R.menu.toolbar_menu, menu)
@@ -162,6 +181,7 @@ class NewTrackFragment : Fragment() {
         startCoordinates.put("longitude", track_longitude.text)
         newTrack.startCoordinates = startCoordinates.toString()
 
+        newTrack.staticTrack = track_static.text.toString()
         binding.newTrackViewModel?.insertNewTrack(newTrack, res = { newTrackInsert(it) } )
     }
 
@@ -178,6 +198,48 @@ class NewTrackFragment : Fragment() {
         trackLoaded.startCoordinates = startCoordinates.toString()
 
         binding.newTrackViewModel?.updateTrack(trackLoaded)
+    }
+
+
+    /**
+     * Select existing track, which can be shown on map
+     *
+     */
+    private fun getStaticTrack(binding: FragmentNewTrackBinding) {
+        println("GpxFilePaths.count: ${gpxFileNames.size}")
+
+        //var gpxFileNameArray = emptyArray<String>()
+        var a = arrayOf("one", "two", "three")
+
+        var gpxFileNameArray = gpxFileNames.keys.toTypedArray()
+        for (g in gpxFileNames) {
+            println( "${g.key} , ${g.value}")
+
+        }
+
+        val builder = activity?.let {
+            AlertDialog.Builder(it)
+        }
+        builder?.setTitle(R.string.selectTrack_dialog_title)
+            ?.setItems(gpxFileNameArray,
+                DialogInterface.OnClickListener { dialog, which ->
+                    var selected = gpxFileNameArray[which]
+                    println("selected: ${selected}")
+                    binding.trackStatic.text = selected
+                } )
+            ?.setNegativeButton(R.string.tracker_cancel,
+                DialogInterface.OnClickListener { dialog, id ->
+                    print("cancel dialog ${id}")
+                    binding.trackStatic.text = ""
+                } )
+
+        val dialog: AlertDialog? = builder?.create()
+        dialog?.show()
+    }
+
+
+    fun bottomSheedDismiss() {
+        println("bottomSheetDismiss")
     }
 
 

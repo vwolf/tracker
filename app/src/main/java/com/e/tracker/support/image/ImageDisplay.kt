@@ -19,34 +19,36 @@ import com.e.tracker.osm.OSM_LOG
 /**
  * This activity get a list of image path's and display the images
  * inside [PictureBrowserFragment]
+ * Using arrayList<PictureFacer> (Parcelable).
+ * ToDo Create PictureFacer list here, just get the path to images
+ *
  *
  */
 class ImageDisplay : AppCompatActivity(), ItemClickListener {
 
     lateinit var imagePath: ArrayList<String>
     lateinit var imageRecycler: RecyclerView
-    lateinit var imageRecyclerAdapter: PictureAdapter
 
     var position = 0
-
     var load: ProgressBar? = null
 
-    var allPictures = ArrayList<PictureFacer>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_image_display)
 
-        // IMAGESPATH is an arrayList<String> with image paths
+        setSupportActionBar(findViewById(R.id.toolbar))
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+//        // IMAGESPATH is an arrayList<String> with image paths
         val bundle = intent.extras
-        //if (bundle?.getString("PATH") != null) {
-        val  aimagePath = bundle?.getStringArrayList("IMAGESPATH")
-
-        if (aimagePath != null) {
-            imagePath = aimagePath
-        }
-
+//        val  aimagePath = bundle?.getStringArrayList("IMAGESPATH")
+//
+//        if (aimagePath != null) {
+//            imagePath = aimagePath
+//        }
+//
         position = bundle.getInt("POSITION")
 
         var picsList = ArrayList<PictureFacer>()
@@ -56,37 +58,31 @@ class ImageDisplay : AppCompatActivity(), ItemClickListener {
         }
 
         imageRecycler = findViewById(R.id.recycler)
-        //imageRecycler = findViewById(R.id.indicatorRecycler)
-        //imageRecycler.addItemDecoration(ViewGroup.MarginLayoutParams(this))
+//        //imageRecycler = findViewById(R.id.indicatorRecycler)
+//        //imageRecycler.addItemDecoration(ViewGroup.MarginLayoutParams(this))
         imageRecycler.hasFixedSize()
 
         load = findViewById(R.id.loader)
 
         if (picsList.isNotEmpty()) {
-//            load?.visibility = View.VISIBLE
-//            imageRecycler.adapter = PictureAdapter(picsList, this@ImageDisplay, this)
-//            load?.visibility = View.GONE
+////            load?.visibility = View.VISIBLE
+////            imageRecycler.adapter = PictureAdapter(picsList, this@ImageDisplay, this)
+////            load?.visibility = View.GONE
             loadImages(position, picsList)
         }
-
-//        if (imagePath.isNotEmpty()) {
-//            load?.visibility = View.VISIBLE
-//            allPictures = getAllImages(imagePath)
-//            imageRecycler.adapter = PictureAdapter(allPictures, this@ImageDisplay, this)
-//            //imageRecyclerAdapter = PictureAdapter(allPictures, this@ImageDisplay, this)
 //
-//            //val pc = imageRecycler.findContainingViewHolder(findViewById(R.id.recycler))
-//            load?.visibility = View.GONE
-//
-//           // loadImages(imageRecyclerAdapter.picHolder, 0, allPictures)
-//        }
+////        if (imagePath.isNotEmpty()) {
+////            load?.visibility = View.VISIBLE
+////            allPictures = getAllImages(imagePath)
+////            imageRecycler.adapter = PictureAdapter(allPictures, this@ImageDisplay, this)
+////            //imageRecyclerAdapter = PictureAdapter(allPictures, this@ImageDisplay, this)
+////
+////            //val pc = imageRecycler.findContainingViewHolder(findViewById(R.id.recycler))
+////            load?.visibility = View.GONE
+////
+////           // loadImages(imageRecyclerAdapter.picHolder, 0, allPictures)
+////        }
 
-
-        Log.i(OSM_LOG, "ImageDisplay.imagePath: $imagePath")
-        //loadImage(imagePath[0])
-
-
-        //}
     }
 
     override fun onStart() {
@@ -98,20 +94,11 @@ class ImageDisplay : AppCompatActivity(), ItemClickListener {
         val imageRecyclerAdapter = imageRecycler
         super.onResume()
     }
-    override fun onCreateView(name: String, context: Context, attrs: AttributeSet): View? {
-//        var imageRecyclerTemp = PictureAdapter(allPictures, this@ImageDisplay, this)
-//        val picHolder = imageRecyclerTemp.picHolder
-//
-//        imageRecycler.adapter = PictureAdapter(allPictures, this@ImageDisplay, this)
 
-
-
-//        loadImages(picHolder, 0, allPictures)
-
-        return super.onCreateView(name, context, attrs)
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
     }
-
-
 
     /**
      *
@@ -204,8 +191,4 @@ class ImageDisplay : AppCompatActivity(), ItemClickListener {
     }
 
 
-    fun getAllImagesInList(imageList: List<String>) {
-
-        var images = arrayListOf<PictureFacer>()
-    }
 }
