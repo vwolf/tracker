@@ -1,6 +1,8 @@
 package com.e.tracker.osm
 
 import android.graphics.Point
+import com.e.tracker.database.TrackCoordModel
+import com.e.tracker.xml.gpx.domain.Bounds
 import org.osmdroid.util.*
 import org.osmdroid.views.Projection
 import org.osmdroid.views.overlay.Polyline
@@ -318,5 +320,29 @@ class OSMPathUtils {
                 pointsForMilestones.add(first.x, first.y)
             }
         }
+    }
+
+
+    /**
+     * Create a new Bounds object
+     *
+     * coords = mutableListOf<TrackCoordModel>
+     */
+    public  fun createBounds(coords: MutableList<TrackCoordModel>): BoundingBox {
+        var minLat: Double = coords[0].latitude
+        var maxLat: Double = coords[0].latitude
+        var minLon: Double = coords[0].longitude
+        var maxLon: Double = coords[0].longitude
+
+        for (c in coords) {
+            minLat = minOf(c.latitude, minLat)
+            maxLat = maxOf(c.latitude, maxLat)
+            minLon = minOf(c.longitude, minLon)
+            maxLon = maxOf(c.longitude, maxLon)
+        }
+
+        var boundingBox = BoundingBox(maxLat, maxLon, minLat, minLon)
+
+        return boundingBox
     }
 }

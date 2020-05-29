@@ -41,16 +41,10 @@ import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.*
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.*
+import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import kotlin.reflect.KProperty
 
 
-//var Marker.type: String = ""
-//    get() = "o"
-//    set(value) {
-//
-//    }
-    //get() = this.type
-    //set(value) {  type = value}
 
 /**
  * Fragment with OpenStreetMap
@@ -76,7 +70,7 @@ class FragmentOsmMap : Fragment() {
     private val pathM: MutableLiveData<Polyline> = MutableLiveData(this.path)
 
     private var pathEditEnabled = false
-    lateinit var mapEventsOverlay: MapEventsOverlay
+    private lateinit var mapEventsOverlay: MapEventsOverlay
 
     // Marker extension with FieldProperty to act as binding field
     // Should be implemented as hashtable
@@ -107,7 +101,10 @@ class FragmentOsmMap : Fragment() {
     //var fusedLocationProviderClient: FusedLocationProviderClient? = null
 
     // items for marker
-    private var itemsOn = false
+//    private var itemsOn = false
+
+    // location overlay
+    private var currentLocationOverlay: MyLocationNewOverlay? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -127,7 +124,7 @@ class FragmentOsmMap : Fragment() {
         binding.map.setUseDataConnection(true)
         binding.map.setTileSource(TileSourceFactory.DEFAULT_TILE_SOURCE)
 
-        binding.map.controller.setZoom(15.0)
+        binding.map.controller.setZoom(16.0)
         //binding.map.controller.setCenter(GeoPoint(52.4908, 13.4186))
         binding.map.controller.setCenter(GeoPoint(this.trackObject.latitude, this.trackObject.longitude))
 
@@ -147,8 +144,9 @@ class FragmentOsmMap : Fragment() {
                 this.onStaticPathInfo()
             }
 
+            binding.mapStaticBtnGps.alpha = 0.5f
             binding.mapStaticBtnGps.setOnClickListener {
-                this.onGpsButton()
+                this.onGpsButton(binding.mapStaticBtnGps)
             }
 
         } else {
@@ -198,11 +196,17 @@ class FragmentOsmMap : Fragment() {
             }
         }
 
+//        this.map.addOnFirstLayoutListener() {
+//            this.map.addOnLayoutChangeListener { ol }
+//        }
+
         //fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext())
         Log.i("LOG", "map tileSource: ${binding.map.tileProvider.tileSource}")
         return binding.root
     }
 
+
+    
     override fun onAttach(context: Context) {
         super.onAttach(context)
     }
@@ -212,7 +216,21 @@ class FragmentOsmMap : Fragment() {
         //addPolyline()
         if (this.trackObject.trackSourceType == TrackSourceType.FILE) {
             this.updateMap()
+            //this.zoomToTrackBounds()
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.i(OSM_LOG, "FragmentOsmMap.onStart()")
+//        if (this.trackObject.trackSourceType == TrackSourceType.FILE) {
+//            //this.zoomToTrackBounds()
+//        }
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        Log.i(OSM_LOG, "FragmentOsmMap.onActivityCreated()")
     }
 
     override fun onPause() {
@@ -314,7 +332,9 @@ class FragmentOsmMap : Fragment() {
     fun showWayPoints(state: Boolean) {
         Log.i(OSM_LOG, "showWayPoints state: $state")
         if (state) {
-            this.showWayPoints()
+            if ( this.trackObject.wayPoints.isNotEmpty()) {
+                this.showWayPoints()
+            }
         } else {
             this.hideWayPoints()
         }
@@ -324,9 +344,13 @@ class FragmentOsmMap : Fragment() {
      * Put an icon on all waypoints
      *
      */
-    fun showWayPoints() {
+    private fun showWayPoints() {
         Log.i(OSM_LOG, "showWayPoints")
         //Log.i(OSM_LOG, "")
+
+        if (trackObject.wayPoints.isEmpty()) {
+            return
+        }
 
         if ( this.map_toolbar_btn_info.isActivated ) {
             hideWayPoints()
@@ -358,12 +382,6 @@ class FragmentOsmMap : Fragment() {
                     Log.i(OSM_LOG, "onClickListener for waypoint id: ${wp.pointId}")
 
                     this.osmBottomSheet?.openOsmBottomSheetWithContent("WayPoint", wp)
-//                val dialog = WayPointBottomSheetDialog.getInstance(
-//                    wp,
-//                    {wayPointAction("Edit")},
-//                    {wayPointAction("Delete")}
-//                )
-//                dialog.show(requireFragmentManager(), WayPointBottomSheetDialog::class.java.simpleName)
 
                     //marker.showInfoWindow()
                     true
@@ -386,16 +404,6 @@ class FragmentOsmMap : Fragment() {
     }
 
 
-    /**
-     * Return from waypoint bottomsheet
-     *
-     * @param callback Edit or Delete
-     */
-    fun wayPointAction(callback: String) {
-        Log.i(OSM_LOG, "wayPointAction: $callback ")
-
-    }
-
 
     /**
      * This comes from activity, is touchUp event on map
@@ -405,7 +413,7 @@ class FragmentOsmMap : Fragment() {
      */
     fun receiveActionUP() {
 
-        Log.i("LOG", "ACTIONUP map center: ${this.map.mapCenter}, center offset x: ${this.map.mapCenterOffsetX}")
+        Log.i("LOG", "ACTIONUP map center: ${this.map.mapCenter}, center offset x: ${this.map.mapCenterOffsetX}, zoom: ${this.map.zoomLevelDouble}")
 
         // important for OnScroll(), makes sure to get right scroll event distance
         this.map.controller.setCenter(this.map.mapCenter)
@@ -511,6 +519,8 @@ class FragmentOsmMap : Fragment() {
             this@FragmentOsmMap.clickOnMarker(this@FragmentOsmMap.selectedMarkers.first(), 0)
             return true
         }
+
+
     }
 
     /**
@@ -531,6 +541,8 @@ class FragmentOsmMap : Fragment() {
 
 
     fun updateMap() {
+        Log.i(OSM_LOG, "zoom: ${this.map.zoomLevelDouble}")
+
         this.map.controller.setCenter(GeoPoint(this.trackObject.latitude, this.trackObject.longitude))
 
         (this.activity as? AppCompatActivity)?.supportActionBar?.title = this.trackObject.trackName
@@ -552,6 +564,18 @@ class FragmentOsmMap : Fragment() {
         this.map.invalidate()
     }
 
+    fun zoomToTrackBounds() {
+        Log.i(OSM_LOG, "zoomToTrack.map: ${map}")
+        if (map == null) {
+            return
+        }
+        if (this.trackObject.coords.size > 1 ) {
+            val trackBounds = OSMPathUtils().createBounds(this.trackObject.coords)
+//            map.zoomToBoundingBox(trackBounds, true)
+            map.zoomToBoundingBox(trackBounds, true, 36)
+        }
+    }
+
 
     private fun trackStartMarker() {
 
@@ -569,18 +593,22 @@ class FragmentOsmMap : Fragment() {
         startMarker.setOnMarkerClickListener { marker, mapView ->
             var toastText = marker.title.toString()
             if (this.activeMarker == marker) {
+                // marker is selected, reset to not selected
                 this.setAddButtonState(false, marker.id, marker)
                 this.activeMarker = null
-                mIcon?.setTint(ContextCompat.getColor(this.requireContext(), R.color.schema_one_red))
+                mIcon?.setTint(ContextCompat.getColor(this.requireContext(), R.color.schema_one_green))
                 this.map.invalidate()
                 toastText += " is not active."
             } else {
+                // before selecting this marker reset any selected marker
                 if (this.activeMarker?.type == TrackMarkerType.END) {
                     this.activeMarker?.icon?.setTint(ContextCompat.getColor(this.requireContext(), R.color.schema_one_red))
                 }
                 this.activeMarker = marker
                 this.setAddButtonState(true, marker.id, marker)
                 mIcon?.setTint(ContextCompat.getColor(this.requireContext(), R.color.schema_one_blue))
+
+                unSelectSegment()
                 this.map.invalidate()
                 toastText += " is active. Touch on map to extend track."
             }
@@ -625,9 +653,13 @@ class FragmentOsmMap : Fragment() {
                 this.map.invalidate()
                 toastText += " is not active."
             } else {
+                if (this.activeMarker?.type == TrackMarkerType.START) {
+                    this.activeMarker?.icon?.setTint(ContextCompat.getColor(this.requireContext(), R.color.schema_one_green))
+                }
                 this.activeMarker = marker
                 this.setAddButtonState(true, marker.id, marker)
                 mIcon?.setTint(ContextCompat.getColor(this.requireContext(), R.color.schema_one_blue))
+                unSelectSegment()
                 this.map.invalidate()
                 //marker.showInfoWindow()
                 toastText += " is active. Touch on map to extend track."
@@ -646,18 +678,63 @@ class FragmentOsmMap : Fragment() {
 
     }
 
+    /**
+     * Move track end marker to new track end position
+     *
+     */
+    private fun updateTrackEndMarker() {
+        this.map.overlays.forEach {
+            if (it is Marker) {
+                if (it.id == "track_end") {
+                    it.position = this.trackObject.coordsGpx.last()
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Reset active marker to default state
+     */
+    private fun resetActiveMarker() {
+
+        if (activeMarker != null) {
+            when (activeMarker!!.type) {
+                TrackMarkerType.START -> {
+                    this.activeMarker?.icon?.setTint(ContextCompat.getColor(this.requireContext(), R.color.schema_one_green))
+                }
+                TrackMarkerType.END -> {
+                    this.activeMarker?.icon?.setTint(ContextCompat.getColor(this.requireContext(), R.color.schema_one_red))
+                }
+            }
+        }
+
+    }
+
 
     /**
      * Update path after action
-     * Use property path, only works with on path on map
+     * Use property path, only works with one path on map
      *
      * @param status
      */
     fun updatePath(status: TrackActionType) {
         println("updatePath: $status")
+
+//        activity?.runOnUiThread {
+//            Toast.makeText(this.context, "updatePath: $status", Toast.LENGTH_SHORT).show()
+//        }
+
+
         when (status) {
             TrackActionType.AddAtStart -> { }
-            TrackActionType.AddAtEnd -> { }
+            TrackActionType.AddAtEnd -> {
+                this.path.setPoints(this.trackObject.coordsGpx)
+                activity?.runOnUiThread() {
+                    //this.updateMap()
+                    this.updateTrackEndMarker()
+                }
+            }
             TrackActionType.RemoveSelected -> {
                 // update selected marker
 
@@ -681,7 +758,9 @@ class FragmentOsmMap : Fragment() {
         }
 
         this.path.setPoints(this.trackObject.coordsGpx)
-        this.map.invalidate()
+        activity?.runOnUiThread {
+            this.map.invalidate()
+        }
     }
 
     /**
@@ -693,7 +772,7 @@ class FragmentOsmMap : Fragment() {
         // convert coords into GeoPoint's
         val geoPoints = arrayListOf<GeoPoint>()
         for (coord in this.trackObject.coords) {
-            geoPoints.add(GeoPoint(coord.latitude!!, coord.longitude!!))
+            geoPoints.add(GeoPoint(coord.latitude, coord.longitude))
         }
 
         // init and style path
@@ -726,7 +805,7 @@ class FragmentOsmMap : Fragment() {
         // convert coords into GeoPoint's
         val geoPoints = arrayListOf<GeoPoint>()
         for (coord in this.trackObject.coords) {
-            geoPoints.add(GeoPoint(coord.latitude!!, coord.longitude!!))
+            geoPoints.add(GeoPoint(coord.latitude, coord.longitude))
         }
 
         val roadManager = OSRMRoadManager(this.requireContext())
@@ -792,6 +871,13 @@ class FragmentOsmMap : Fragment() {
             if (this.map_toolbar_btn_movePoint.isEnabled) {
                 this.disableTrackPointMove()
             }
+
+            // disable start and end marker if enabled
+            if ( this.activeMarker != null ) {
+                //this.activeMarker.id == "TrackEnd"
+                this.resetActiveMarker()
+                this.activeMarker = null
+            }
 //            selectedSegment = segmentIndex
         }
         return true
@@ -804,12 +890,16 @@ class FragmentOsmMap : Fragment() {
             GeoPoint(polyline.points[segmentIdx])
         )
         val pointsIdx = listOf(segmentIdx - 1, segmentIdx)
-
         this.addIconToPoints(pointsToMark, pointsIdx)
-
         this.pathSegmentInfo(pointsToMark, segmentIdx)
 
+        // remove possible mapListener ( move map active)
+        if (this.map_toolbar_btn_movePoint.isEnabled) {
+            this.removeMapListener()
+        }
+
         this.selectedSegment = segmentIdx
+        this.map.invalidate()
     }
 
     /**
@@ -836,6 +926,8 @@ class FragmentOsmMap : Fragment() {
 
            this.map_toolbar_btn_movePoint.isEnabled = false
            this.map_toolbar_btn_movePoint.alpha = 0.5f
+
+           this.removeMapListener()
        }
     }
 
@@ -1057,7 +1149,7 @@ class FragmentOsmMap : Fragment() {
             this.map.overlays.add(marker)
         }
 
-        this.map.invalidate()
+        //this.map.invalidate()
     }
 
     /**
@@ -1082,7 +1174,6 @@ class FragmentOsmMap : Fragment() {
 
         }
     }
-
 
 
 
@@ -1116,9 +1207,19 @@ class FragmentOsmMap : Fragment() {
         Log.e("Log", location.toString())
         //return latitude
 
-        this.trackObject.addCoord(
-            GeoPoint(location.latitude, location.longitude),
-            res = { this.updatePath(TrackActionType.AddAtEnd) })
+        Toast.makeText(
+            this.context,
+            " lat: ${location.latitude}, lon: ${location.longitude} ",
+            Toast.LENGTH_SHORT
+        ).show()
+
+        if (this.trackObject.trackSourceType == TrackSourceType.FILE) {
+
+        } else {
+            this.trackObject.addCoord(
+                GeoPoint(location.latitude, location.longitude),
+                res = { this.updatePath(TrackActionType.AddAtEnd) })
+        }
     }
 
 
@@ -1138,11 +1239,15 @@ class FragmentOsmMap : Fragment() {
                 this.trackObject.deleteCoord(
                     markerPosition,
                     res = {
-                        this.updatePath(TrackActionType.RemoveSelected)
-                        this.unSelectSegment()
+                        activity?.runOnUiThread() {
+                            this.updatePath(TrackActionType.RemoveSelected)
+                            this.unSelectSegment()
+                        }
+
                     })
             }
             //this.unSelectSegment()
+            //this.map.invalidate()
         } else {
             if (btn.isEnabled) {
                 btn.alpha = 1.0f
@@ -1311,10 +1416,29 @@ class FragmentOsmMap : Fragment() {
     }
 
     /**
-     * Toggle gps functions
+     * Toggle display of current position.
      *
      */
-    private fun onGpsButton() {}
+    private fun onGpsButton(btn: ImageButton) {
+        if (btn.alpha == 0.5f) {
+            btn.alpha = 1.0f
+            //this.pathEditEnabled = true
+
+            currentLocationOverlay = MyLocationNewOverlay(map)
+            map.overlays.add(currentLocationOverlay)
+            currentLocationOverlay!!.enableMyLocation()
+            currentLocationOverlay!!.enableFollowLocation()
+
+            //LocationTrackingService.startService(this.requireContext(), callback = { this.onLocationChangeFromService(it) })
+        } else {
+            btn.alpha = 0.5f
+            map.overlayManager.remove(currentLocationOverlay)
+            //map.overlayManager.
+            //this.pathEditEnabled = false
+
+            //LocationTrackingService.stopService(this.requireContext())
+        }
+    }
 
     /**
      * Set state of toolbar button add depending situation
@@ -1422,7 +1546,9 @@ class FragmentOsmMap : Fragment() {
     }
 }
 
-
+//private fun MapView.addOnLayoutChangeListener(ol: () -> Unit) {
+//
+//}
 
 
 //org.osmdroid.bonuspack.kml.KmlPoint.

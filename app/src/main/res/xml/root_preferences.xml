@@ -1,0 +1,61 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/gpxtrackingvalues_header">
+        <EditTextPreference
+            app:key="@string/gpx_distance_key"
+            app:title="@string/gpx_tracking_distance"
+            app:defaultValue="@string/gpx_tracking_default"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="@string/gpx_distance_key"
+            app:title="@string/gpx_tracking_interval"
+            app:defaultValue="@string/gpx_interval_default"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/layout_header">
+        <ListPreference
+            app:defaultValue="color schema"
+            app:title="@string/layout_colorschema"
+            app:entries="@array/color_schema_entries"
+            app:entryValues="@array/color_schema_values"
+            app:key="colorschema"
+            app:useSimpleSummaryProvider="true"
+            />
+    </PreferenceCategory>
+
+<!--    <PreferenceCategory app:title="@string/messages_header">-->
+
+<!--        <EditTextPreference-->
+<!--            app:key="signature"-->
+<!--            app:title="@string/signature_title"-->
+<!--            app:useSimpleSummaryProvider="true" />-->
+
+<!--        <ListPreference-->
+<!--            app:defaultValue="reply"-->
+<!--            app:entries="@array/reply_entries"-->
+<!--            app:entryValues="@array/reply_values"-->
+<!--            app:key="reply"-->
+<!--            app:title="@string/reply_title"-->
+<!--            app:useSimpleSummaryProvider="true" />-->
+
+<!--    </PreferenceCategory>-->
+
+<!--    <PreferenceCategory app:title="@string/sync_header">-->
+
+<!--        <SwitchPreferenceCompat-->
+<!--            app:key="sync"-->
+<!--            app:title="@string/sync_title" />-->
+
+<!--        <SwitchPreferenceCompat-->
+<!--            app:dependency="sync"-->
+<!--            app:key="attachment"-->
+<!--            app:summaryOff="@string/attachment_summary_off"-->
+<!--            app:summaryOn="@string/attachment_summary_on"-->
+<!--            app:title="@string/attachment_title" />-->
+
+<!--    </PreferenceCategory>-->
+
+</PreferenceScreen>

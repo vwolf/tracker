@@ -25,6 +25,9 @@
     <string name="waypoint_dialog_header">Waypoint header</string>
     <string name="waypoint_dialog_text">Waypoint text</string>
 
+    // map bottom sheet
+    <string name="map_bottomsheet_header">Track details</string>
+
     <string name="tracker_edit">Edit</string>
     <string name="tracker_delete">Delete</string>
     <string name="tracker_save">Save</string>
@@ -38,4 +41,28 @@
 
     <string name="selectTrack_dialog_title">Select Track</string>
     <string name="selectTrack_dialog_message">Track to display on map</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Preference Titles -->
+    <string name="gpxtrackingvalues_header">Tracking</string>
+    <string name="layout_header">Layout</string>
+
+    <!-- Gpx Preferences -->
+    <string name="gpx_tracking_distance">Distance (meter)</string>
+    <string name="gpx_tracking_interval">Interval (seconds)</string>
+    <string name="gpx_tracking_default">10</string>
+    <string name="gpx_interval_default">1</string>
+    <string name="gpx_distance_key">gpx_distance</string>
+    <string name="gpx_interval_key">gpx_interval</string>
+
+    <!-- Layout Preferences -->
+    <string name="layout_colorschema">Colore Schema</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
 </resources>

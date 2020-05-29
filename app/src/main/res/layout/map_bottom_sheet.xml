@@ -3,25 +3,35 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingBottom="8dp">
 
     <TextView
+        android:id="@+id/map_bottomsheet_header"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:duplicateParentState="false"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text="@string/map_bottomsheet_header"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
         android:id="@+id/track_distance"
-        android:layout_marginTop="8dp"
-        android:drawableLeft="@drawable/ic_remove_black_24dp"
+        style="@style/MapBottomSheet"
         android:drawableStart="@drawable/ic_remove_black_24dp"
         android:text="@string/track_distance"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        style="@style/MapBottomSheet"
-        />
+        app:layout_constraintTop_toBottomOf="@id/map_bottomsheet_header" />
 
     <TextView
         android:id="@+id/track_elevation"
-        android:drawableLeft="@drawable/ic_remove_black_24dp"
         android:drawableStart="@drawable/ic_remove_black_24dp"
         android:text="@string/track_elevation"
         app:layout_constraintEnd_toEndOf="parent"

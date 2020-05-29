@@ -116,7 +116,7 @@ class TrackObject {
                         // add at end of path
                         coords.add(trackCoordModel)
                         coordsGpx.add(geoPoint)
-                        //res()
+                        res()
 
                     } else {
                         // add at position of path

@@ -81,7 +81,7 @@ class TrackRecordingFragment  : Fragment() {
             println("Permission granted READ_EXTERNAL_STORAGE")
 
             binding.trackrecordingStart.isEnabled = false
-            binding.trackrecordingStart.alpha = 0.5F
+            binding.trackrecordingStart.alpha = 0.4F
 
             // get current location
             // track recording only works if location is enabled
@@ -177,7 +177,7 @@ class TrackRecordingFragment  : Fragment() {
             }
 
             override fun onProviderDisabled(p0: String?) {
-                trackrecording_start.alpha = 0.5F
+                trackrecording_start.alpha = 0.4F
                 trackrecording_start.isEnabled = false
             }
 

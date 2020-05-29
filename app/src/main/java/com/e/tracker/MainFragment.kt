@@ -1,6 +1,9 @@
 package com.e.tracker
 
+import android.content.Context
 import android.os.Bundle
+import android.preference.PreferenceManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.e.tracker.database.TrackModel
 import com.e.tracker.databinding.FragmentMainBinding
+import com.e.tracker.osm.OSM_LOG
 import com.e.tracker.track.TrackFileParcel
 import com.e.tracker.track.Tracks
 import com.e.tracker.track.TracksName
@@ -77,6 +81,23 @@ class MainFragment : Fragment() {
 
             view.findNavController().navigate(R.id.action_mainFragment_to_trackRecordingFragment)
         }
+
+//        val sharedPref = activity?.getSharedPreferences(
+//            getString(R.string.gpx_tracking_distance), Context.MODE_PRIVATE
+//        )
+//        Log.i(OSM_LOG, "Gpx tracking distance: ${sharedPref.toString()}")
+//        val sharedPref = activity?.getPreferences(Context.MODE_PRIVATE)
+//        val defaultValue = resources.getInteger(R.integer.gpx_tracking_default)
+//        val gpxValue = sharedPref?.getInt(getString(R.string.gpx_tracking_distance), defaultValue)
+//
+//        Log.i(OSM_LOG, "SharedPref: $defaultValue, $gpxValue")
+
+//        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+//       // val v = prefs.getInt(getString((R.string.gpx_distance_key)), 33)
+//        val w = prefs.getString("gpx_distance", "33")
+//
+//        val intervalDefault = resources.getString(R.string.gpx_interval_default)
+
         return binding.root
     }
 

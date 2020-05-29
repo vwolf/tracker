@@ -2,7 +2,7 @@ package com.e.tracker.xml.gpx.domain
 
 
 
-class Bounds private constructor(builder: Builder) {
+class Bounds(builder: Builder) {
     private val minLat: Double?
     private val minLon: Double?
     private val maxLat: Double?

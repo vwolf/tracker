@@ -2,6 +2,7 @@ package com.e.tracker
 
 import android.Manifest
 import android.content.ContentUris
+import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -10,6 +11,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.databinding.DataBindingUtil
+import androidx.preference.PreferenceScreen
 import com.e.tracker.support.*
 import com.e.tracker.support.Permissions
 import com.e.tracker.databinding.ActivityMainBinding
@@ -46,11 +48,21 @@ class MainActivity : AppCompatActivity(){
     // put the option on screen
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
+        //menu?.findItem(R.id.menu_help)?.isVisible = false
         menu?.findItem(R.id.menu_showWaypoints)?.isVisible = false
         menu?.findItem(R.id.menu_lockPath)?.isVisible = false
         //invalidateOptionsMenu()
 
         return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        Log.i(OSM_LOG, "onPrepareOptionsMenu")
+
+        //menu?.findItem(R.id.menu_showWaypoints)?.isVisible = true
+        super.onPrepareOptionsMenu(menu)
+
+        return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -61,6 +73,12 @@ class MainActivity : AppCompatActivity(){
                 return true
             }
 
+            R.id.menu_settings -> {
+                println("Menu item Settings")
+                startActivity(Intent(this, SettingsActivity::class.java))
+
+                return true
+            }
 //            R.id.menu_showWaypoints -> {
 //                if (item.isChecked)
 //                    item.isChecked = false
@@ -76,8 +94,8 @@ class MainActivity : AppCompatActivity(){
             }
         }
 
-        return false
-        //return super.onOptionsItemSelected(item)
+        //return false
+        return super.onOptionsItemSelected(item)
     }
 
     fun getLocalImagePaths() {

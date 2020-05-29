@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Parcelable
 import android.os.StrictMode
-import android.transition.Fade
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -16,6 +15,7 @@ import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import com.e.tracker.R
+import com.e.tracker.SettingsActivity
 import com.e.tracker.support.OsmMapType
 import com.e.tracker.support.PERMISSIONS_REQUEST_CAMERA
 import com.e.tracker.database.*
@@ -28,7 +28,6 @@ import com.e.tracker.support.Permissions
 import com.e.tracker.support.image.ImageDisplay
 import com.e.tracker.osm.dialogs.OsmBottomSheet
 import com.e.tracker.support.image.PicHolder
-import com.e.tracker.support.image.PictureBrowserFragment
 import com.e.tracker.support.image.PictureFacer
 import kotlinx.coroutines.*
 import org.osmdroid.util.GeoPoint
@@ -42,6 +41,7 @@ const val WAYPOINT_VIDEOFROMCAMERA = 2003
 const val WAYPOINT_VIDEOFROMGALLERY = 2004
 const val WAYPOINT_AUDIOFROMRECORDER = 2005
 const val WAYPOINT_AUDIOFROMMUSIC = 2006
+
 /**
  * OsmBottomSheets: waypoint_new_bottom_sheet, waypoint_bottom_sheet, map_bottom_sheet
  * Implement FragmentOsmMap.OsmBottomSheet interface
@@ -53,7 +53,6 @@ class OsmActivity : AppCompatActivity(),
     FragmentOsmMap.OsmBottomSheet,
     OsmBottomSheet.OsmDialogListener {
 
-    //WayPointNewBottomSheetDialog.ItemClickListener,
     // db connections
     private val trackSource : TrackDatabaseDao
         get() = TrackDatabase.getInstance(application).trackDatabaseDao
@@ -103,7 +102,7 @@ class OsmActivity : AppCompatActivity(),
                 } else {
                     makeTrackFromFile(filePath)
                 }
-
+                trackObject.type = TrackSourceType.FILE
             }
             else -> {
                 trackObject.type = TrackSourceType.NEW
@@ -137,22 +136,29 @@ class OsmActivity : AppCompatActivity(),
     /**
      * Dispatch MotionEvent.ACTION_UP to map for map scroll
      *
+     * @param event
+     * @return Boolean
      */
-    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+    override fun dispatchTouchEvent(event: MotionEvent?): Boolean {
 
-        if( ev?.action == MotionEvent.ACTION_UP) {
-            Log.i(OSM_LOG, "OsmActivity dispatchTouchEvent: $ev")
+        if( event?.action == MotionEvent.ACTION_UP) {
+            Log.i(OSM_LOG, "OsmActivity dispatchTouchEvent: $event")
             this@OsmActivity.mapFragment.receiveActionUP()
         }
 
-        if( ev?.action == MotionEvent.ACTION_DOWN) {
+        if( event?.action == MotionEvent.ACTION_DOWN) {
 
         }
-        return super.dispatchTouchEvent(ev)
+        return super.dispatchTouchEvent(event)
     }
 
 
-
+    /**
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         println("onActivityResult: $requestCode + $resultCode")
         super.onActivityResult(requestCode, resultCode, data)
@@ -167,7 +173,7 @@ class OsmActivity : AppCompatActivity(),
      * Set TrackObject values
      * Read coordinates for track from db.
      *
-     * @param id
+     * @param id is track id
      */
     private fun makeTrackFromDb(id: Long) {
 
@@ -193,7 +199,7 @@ class OsmActivity : AppCompatActivity(),
                     this@OsmActivity.mapFragment.trackObject = trackObject
                     this@OsmActivity.mapFragment.updateMap()
                     this@OsmActivity.mapFragment.trackObject.updateTrack()
-
+                    this@OsmActivity.mapFragment.zoomToTrackBounds()
                 }
             }
         }
@@ -247,13 +253,16 @@ class OsmActivity : AppCompatActivity(),
             for (p in parsedGpx.wayPoints) {
                 if (p is WayPoint) {
                     val c = TrackCoordModel()
-                    c.latitude = p.latitude
-                    c.longitude = p.longitude
+                    c.latitude = p.latitude!!
+                    c.longitude = p.longitude!!
                     c.altitude = p.elevation
 
                     trackObject.coords.add(c)
                     trackObject.coordsGpx.add(GeoPoint(c.latitude ?: 0.0, c.longitude ?: 0.0))
                 }
+                this@OsmActivity.mapFragment.trackObject = trackObject
+                //this@OsmActivity.mapFragment.updateMap()
+                //this@OsmActivity.mapFragment.zoomToTrackBounds()
             }
         } else {
             if (parsedGpx.tracks.isNotEmpty()) {
@@ -264,21 +273,26 @@ class OsmActivity : AppCompatActivity(),
 
                 for (p in firstTrack.trackPoints) {
                     val c = TrackCoordModel()
-                    c.latitude = p.latitude
-                    c.longitude = p.longitude
+                    c.latitude = p.latitude!!
+                    c.longitude = p.longitude!!
                     c.altitude = p.elevation
 
                     trackObject.coords.add(c)
                     trackObject.coordsGpx.add(GeoPoint(c.latitude ?: 0.0, c.longitude ?: 0.0))
                 }
 
+                this@OsmActivity.mapFragment.trackObject = trackObject
+//                this@OsmActivity.mapFragment.updateMap()
+//                this@OsmActivity.mapFragment.zoomToTrackBounds()
             }
+
         }
 
         trackObject.latitude = trackObject.coordsGpx.first().latitude
         trackObject.longitude = trackObject.coordsGpx.first().longitude
 
-        this@OsmActivity.mapFragment.trackObject = trackObject
+//        this@OsmActivity.mapFragment.trackObject = trackObject
+//        this@OsmActivity.mapFragment.zoomToTrackBounds()
     }
 
 
@@ -312,6 +326,10 @@ class OsmActivity : AppCompatActivity(),
     // put the option on screen
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
+
+        if (this@OsmActivity.mapFragment.trackObject.wayPoints.isEmpty()) {
+            menu?.findItem(R.id.menu_showWaypoints)?.isVisible = false
+        }
         return super.onCreateOptionsMenu(menu)
     }
 
@@ -321,6 +339,11 @@ class OsmActivity : AppCompatActivity(),
         when (item.itemId) {
             R.id.menu_help -> {
                 println("Menu item Help selected")
+                return true
+            }
+
+            R.id.menu_settings -> {
+                startActivity(Intent(this, SettingsActivity::class.java))
                 return true
             }
 

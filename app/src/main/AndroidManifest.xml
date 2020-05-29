@@ -10,9 +10,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.CAMERA" />
-
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-
 
     <application
         android:allowBackup="true"
@@ -21,34 +19,32 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity" >
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/title_activity_settings"></activity>
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".osm.OsmActivity"></activity>
-        <activity android:name=".support.image.ImageDisplay"></activity>
-        <service android:name=".osm.LocationTrackingService"
+        <activity android:name=".osm.OsmActivity" />
+        <activity android:name=".support.image.ImageDisplay" />
+
+        <service
+            android:name=".osm.LocationTrackingService"
             android:enabled="true"
-            android:exported="true">
-        </service>
-<!--        <service android:name=".osm.ForegroundService"></service>-->
+            android:exported="true"></service> <!-- <service android:name=".osm.ForegroundService"></service> -->
         <provider
-            android:authorities="com.e.tracker.fileprovider"
             android:name="androidx.core.content.FileProvider"
+            android:authorities="com.e.tracker.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths">
-            </meta-data>
+                android:resource="@xml/file_paths"></meta-data>
         </provider>
-<!--        <receiver android:name=".MyBroadcastReceiver"-->
-<!--            android:exported="true">-->
-<!--        </receiver>-->
-
     </application>
 
 </manifest>

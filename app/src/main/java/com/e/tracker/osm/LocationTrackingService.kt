@@ -9,11 +9,14 @@ import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.preference.PreferenceManager
+import android.provider.Settings.Global.getString
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.e.tracker.MainActivity
+import com.e.tracker.R
 import java.lang.Exception
 
 
@@ -50,6 +53,8 @@ class LocationTrackingService : Service() {
         }
 
         try {
+            val ll0 = locationListeners[0]
+            val ll1 = locationListeners[1]
             locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, INTERVAL, DISTANCE, locationListeners[1])
         } catch (e: SecurityException) {
             Log.e(TAG, "Fail to request location update", e)
@@ -91,10 +96,10 @@ class LocationTrackingService : Service() {
     companion object {
 
         val TAG = "LocationTrackingService"
-        val INTERVAL = 1000L
-        val DISTANCE = 10.0f
+        var INTERVAL = 1000L
+        var DISTANCE = 10.0f
 
-        var cc: Context? = null
+        var currentContext: Context? = null
 
 
         var updatecallback : (Location) -> Unit = { lat: Location -> lat}
@@ -107,10 +112,20 @@ class LocationTrackingService : Service() {
         fun startService(context: Context, callback: (Location) -> Unit) {
             updatecallback = callback
 
+            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+            // get DISTANCE from preferences
+            val distanceDefault = context.getString(R.string.gpx_tracking_default)
+            val distance = prefs.getString("gpx_distance", distanceDefault)
+            DISTANCE = distance.toFloat()
+            // get INTERVAL from preferences
+            val intervalDefault =  context.getString(R.string.gpx_interval_default)
+            val interval = prefs.getString("gpx_interval", intervalDefault)
+            INTERVAL = interval.toLong() * 1000
+
             val startIntent = Intent(context, LocationTrackingService::class.java)
             //startIntent.putExtra("extra", "extra")
            // startService(startIntent)
-            cc = context
+            currentContext = context
             ContextCompat.startForegroundService(context, startIntent)
         }
 
@@ -156,12 +171,12 @@ class LocationTrackingService : Service() {
 
             override fun onLocationChanged(location: Location?) {
                 lastLocation.set(location)
-                Log.i(TAG, "lastLocation: $lastLocation")
+                Log.i(TAG, "lastLocation: $lastLocation distance: $DISTANCE, interval: $INTERVAL")
 
                 updatecallback( lastLocation )
 
                 Toast.makeText(
-                    cc,
+                    currentContext,
                     "$lastLocation",
                     Toast.LENGTH_LONG
                 ).show()
@@ -171,6 +186,11 @@ class LocationTrackingService : Service() {
             }
 
             override fun onProviderEnabled(provider: String?) {
+                Toast.makeText(
+                    currentContext,
+                    "onProviderEnabled",
+                    Toast.LENGTH_LONG
+                ).show()
             }
 
             override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {

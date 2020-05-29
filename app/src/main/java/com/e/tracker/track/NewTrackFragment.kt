@@ -6,6 +6,7 @@ import android.app.AlertDialog
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.core.content.ContextCompat
@@ -20,6 +21,8 @@ import com.e.tracker.database.TrackDatabase
 import com.e.tracker.database.TrackModel
 import com.e.tracker.databinding.FragmentNewTrackBinding
 import com.e.tracker.osm.MapBottomSheetDialog
+import com.e.tracker.osm.OSMPathUtils
+import com.e.tracker.osm.OSM_LOG
 import com.e.tracker.osm.OsmActivity
 import kotlinx.android.synthetic.main.fragment_new_track.*
 import kotlinx.coroutines.GlobalScope
@@ -133,6 +136,8 @@ class NewTrackFragment : Fragment() {
         }
 
         setHasOptionsMenu(true)
+//        setSupportActionBar()
+//        supportActionBar?.setDisplayAsUpEnabled(true)
 
         return binding.root
     }
@@ -152,15 +157,20 @@ class NewTrackFragment : Fragment() {
         }
     }
 
+    /////////////// OPTIONS MENU /////////////////////////////////
 
     @SuppressLint("RestrictedApi")
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-
-        inflater.inflate(R.menu.toolbar_menu, menu)
-        val mb = MenuBuilder(context)
-        mb.setOptionalIconsVisible(true)
-
         super.onCreateOptionsMenu(menu, inflater)
+    }
+
+
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        Log.i(OSM_LOG, "NewTrackFragment: onPrepareOptionsMenu")
+
+        menu.findItem(R.id.menu_showWaypoints)?.isVisible = false
+
+        super.onPrepareOptionsMenu(menu)
     }
 
     /**

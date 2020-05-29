@@ -26,10 +26,10 @@ data class TrackCoordModel (
     var trackPosition : Int = 0,
 
     @ColumnInfo(name = "lat")
-    var latitude: Double? = 0.0,
+    var latitude: Double = 0.0,
 
     @ColumnInfo(name = "lon")
-    var longitude: Double? = 0.0,
+    var longitude: Double = 0.0,
 
     var altitude: Double? = null,
     var accuracy: Double? = null,

@@ -47,10 +47,10 @@ data class TrackModel (
     var updatedAt: Date? = null,
 
     @ColumnInfo(name = "latitude")
-    var latitude: Double? = 0.0,
+    var latitude: Double = 0.0,
 
     @ColumnInfo(name = "longitude")
-    var longitude: Double? = 0.0,
+    var longitude: Double = 0.0,
 
     @ColumnInfo(name = "startCoordinates")
     var startCoordinates: String = "startCoordinates",
