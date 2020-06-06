@@ -1,6 +1,7 @@
 package com.e.tracker.track
 
 import android.annotation.SuppressLint
+import android.app.Application
 import android.content.Intent
 import android.os.Bundle
 import android.os.Parcelable
@@ -10,7 +11,6 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 //import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
@@ -20,6 +20,7 @@ import com.e.tracker.database.TrackDatabase
 import com.e.tracker.database.TrackModel
 import com.e.tracker.databinding.FragmentTrackListBinding
 import com.e.tracker.osm.OsmActivity
+import com.e.tracker.support.trackToFile.TrackToGpx
 import com.e.tracker.xml.gpx.GPXParser
 import com.e.tracker.xml.gpx.domain.Gpx
 import kotlinx.android.parcel.IgnoredOnParcel
@@ -45,6 +46,7 @@ class TrackListFragment : Fragment(), TrackEditDialogFragment.TrackEditDialogLis
     private val gpxParser : GPXParser = GPXParser()
 
     private lateinit var viewModel: TrackViewModel
+    private lateinit var tracksObjects: TracksObj
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +55,17 @@ class TrackListFragment : Fragment(), TrackEditDialogFragment.TrackEditDialogLis
         if ( !filespaths?.myfilesList.isNullOrEmpty() ) {
             gpxFilePaths = filespaths!!.myfilesList
         }
+
+        //arguments.getParcelable<TracksObj>("tracks").let { this.tracksObjects = it }
+        val tracksObjects = arguments?.getParcelable<TracksObj>("tracks")
+        if (tracksObjects != null) {
+           this.tracksObjects = tracksObjects
+        }
+//        println(tracksObjects)
+//        if (tracksObjects?.tracks?.fileTracks?.isNotEmpty() == true ) {
+//            val m = tracksObjects?.tracks
+//            println("${m.fileTracks.size}")
+//       }
     }
 
 
@@ -92,14 +105,15 @@ class TrackListFragment : Fragment(), TrackEditDialogFragment.TrackEditDialogLis
             //val intent = Intent(requireContext(), OsmActivity::class.java)
             //startActivityForResult(intent, GET_LOCATION_ADDRESS)
         } )
-        { editIconClicked: TrackModel ->
+        { editIconClicked: TrackModel, idx ->
             // show dialog
 //            var trackSource = "file"
 //            if (editIconClicked.id > 0) {
 //                trackSource = "db"
 //            }
             //val dialogFragment = TrackEditDialogFragment("Select Location", trackSource)
-            val dialogFragment = TrackEditDialogFragment.newInstance("Select Action", editIconClicked.id, "TrackAction")
+
+            val dialogFragment = TrackEditDialogFragment.newInstance("Select Action", editIconClicked.id, idx, "TrackAction")
             dialogFragment.setTargetFragment(this, 100)
             dialogFragment.show(requireFragmentManager(), "TrackAction")
         }
@@ -215,6 +229,7 @@ class TrackListFragment : Fragment(), TrackEditDialogFragment.TrackEditDialogLis
             "Duplicate" -> {
                 val b = DataBindingUtil.findBinding<FragmentTrackListBinding>(requireView())
                 b?.trackList?.adapter?.notifyDataSetChanged()
+                TrackToGpx(trackId, Application() )
             }
 
             "Edit" -> {
@@ -227,6 +242,31 @@ class TrackListFragment : Fragment(), TrackEditDialogFragment.TrackEditDialogLis
 
                 //val b = DataBindingUtil.findBinding<FragmentTrackListBinding>(requireView())
                 //b?.trackList?.adapter?.notifyDataSetChanged()
+            }
+        }
+    }
+
+    override fun onDialogOkClick(dialog: DialogFragment, result: DialogItems, trackId: Long, idx: Int) {
+        println("onDialogOkClick ${result.value}")
+
+        when (result) {
+            DialogItems.EDIT -> {
+                val newBundle = Bundle()
+                newBundle.putParcelable("track", TrackParcel(trackId))
+                view?.findNavController()?.navigate(R.id.action_trackListFragment_to_newTrackFragment, newBundle)
+            }
+            DialogItems.DELETE -> {
+                viewModel.deleteTrackWithId(trackId)
+            }
+            DialogItems.DELETE_FILE -> {
+                println("Delete file: ${tracksObjects.tracks.fileTracks[idx].filePath}")
+                viewModel.deleteTrackFile(idx)
+            }
+            DialogItems.TO_DB -> {}
+            DialogItems.TO_FILE -> {
+                val b = DataBindingUtil.findBinding<FragmentTrackListBinding>(requireView())
+                b?.trackList?.adapter?.notifyDataSetChanged()
+                TrackToGpx(trackId, Application() )
             }
         }
     }
@@ -248,4 +288,10 @@ data class TrackParcel(val aId: Long) : Parcelable {
 data class TracksName(val tracks: Map<String, String>) : Parcelable {
     @IgnoredOnParcel
     val trackNames : Map<String, String> = tracks
+}
+
+@Parcelize
+data class TracksObj(val tracks: Tracks) : Parcelable {
+    @IgnoredOnParcel
+    val t: Tracks = tracks
 }

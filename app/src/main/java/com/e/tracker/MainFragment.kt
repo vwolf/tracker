@@ -14,24 +14,35 @@ import androidx.navigation.findNavController
 import com.e.tracker.database.TrackModel
 import com.e.tracker.databinding.FragmentMainBinding
 import com.e.tracker.osm.OSM_LOG
+import com.e.tracker.support.getTracksFromFilesDir
+import com.e.tracker.support.getTracksFromStorage
 import com.e.tracker.track.TrackFileParcel
 import com.e.tracker.track.Tracks
 import com.e.tracker.track.TracksName
+import com.e.tracker.track.TracksObj
 import com.e.tracker.xml.gpx.GPXParser
 import com.e.tracker.xml.gpx.domain.Gpx
 import java.io.File
 
 class MainFragment : Fragment() {
 
-    var filesList = listOf<File>()
+    var filesList = mutableListOf<File>()
     private val gpxParser : GPXParser = GPXParser()
     var gpxFileData = mutableListOf<TrackModel>()
     var gpxFileNames = mutableMapOf<String, String>()
 
+    var tracks = Tracks()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        filesList = Tracks().getTracksFromExternalStorage(requireContext())
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val defaultDirectoryName = "MyTracks"
+        val sdcardDirectory = prefs.getString("sdcard_directory", defaultDirectoryName)
+        // get tracks from external storage
+        filesList.addAll( getTracksFromFilesDir(requireContext()) )
+        // get tracks from sdcard
+        filesList.addAll( getTracksFromStorage(sdcardDirectory))
 
         if (filesList.isEmpty()) {
             Toast.makeText(requireContext(), "No tracks at external storage!", Toast.LENGTH_SHORT).show()
@@ -65,6 +76,7 @@ class MainFragment : Fragment() {
 
             val newBundle = Bundle()
             newBundle.putParcelable("filePaths", TrackFileParcel(filesList))
+            newBundle.putParcelable("tracks", TracksObj(tracks))
 //
 //            val aFragment = TrackListFragment()
 //
@@ -103,6 +115,10 @@ class MainFragment : Fragment() {
 
     /**
      * Parse files in filePathList
+     *
+     * @param filePathList List with path to .gpx files
+     *
+     * @return
      */
     private fun parseGpxFiles(filePathList: List<File>): MutableList<TrackModel> {
         val trackDataList = mutableListOf<TrackModel>()
@@ -117,15 +133,17 @@ class MainFragment : Fragment() {
             //var tracks = parsedGpx.tracks
 
             trackDataList.add(aTrack)
+
+            tracks.addFileTrack(t.absolutePath, aTrack)
         }
 
         return trackDataList
     }
 
     private fun getTracksMetaData(parsedGpx: Gpx, trackModel: TrackModel) {
-        val tracks = parsedGpx.tracks
+        val parsedTracks = parsedGpx.tracks
 
-        for ( track in tracks) {
+        for ( track in parsedTracks) {
             trackModel.trackName = track.trackName ?: ""
             trackModel.trackDescription = track.trackDesc ?: ""
 

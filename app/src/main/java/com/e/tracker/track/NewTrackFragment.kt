@@ -31,6 +31,7 @@ import org.json.JSONObject
 import java.io.File
 
 const val GET_LOCATION_ADDRESS = 1
+
 /**
  * Define new track and insert into db
  * Edit track and update db
@@ -172,6 +173,7 @@ class NewTrackFragment : Fragment() {
 
         super.onPrepareOptionsMenu(menu)
     }
+    ///////////////////////////////////////////////////////////////
 
     /**
      * Build TrackModel from form and send to TrackViewModel

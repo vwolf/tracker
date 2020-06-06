@@ -16,15 +16,16 @@ import java.lang.IllegalStateException
  */
 class TrackEditDialogFragment(
     private var title: String,
-    private var trackId: Long
+    private var trackId: Long,
+    private var idx: Int
 ) : DialogFragment() {
 
     companion object {
         private const val KEY = "select"
 
         @JvmStatic
-        fun newInstance(title: String, trackId: Long, key: String) =
-            TrackEditDialogFragment(title, trackId).apply {
+        fun newInstance(title: String, trackId: Long, idx: Int, key: String) =
+            TrackEditDialogFragment(title, trackId, idx).apply {
                 arguments = Bundle().apply {
                     putString(KEY, key)
                 }
@@ -37,6 +38,7 @@ class TrackEditDialogFragment(
     interface TrackEditDialogListener {
         fun onDialogCancelClick(dialog: DialogFragment)
         fun onDialogPositiveClick(dialog: DialogFragment, result: String, trackId: Long)
+        fun onDialogOkClick(dialog: DialogFragment, result: DialogItems, trackId: Long, idx: Int)
     }
 
 
@@ -56,10 +58,16 @@ class TrackEditDialogFragment(
         return activity?.let {
             val builder = AlertDialog.Builder(it)
             var selectedItem = 0
-            var items = arrayOf("Duplicate")
+            //var items = arrayOf("Save As File")
+            var items = arrayOf<String>()
+
             if (trackId > 0) {
-                items = items.plus(arrayOf("Edit", "Delete"))
+                // track source db and preselect Edit
+                items = items.plus(arrayOf(DialogItems.TO_FILE.value, DialogItems.EDIT.value, DialogItems.DELETE.value))
                 selectedItem = 1
+            } else {
+                // track source file
+                items = items.plus(arrayOf(DialogItems.TO_DB.value, DialogItems.DELETE_FILE.value))
             }
 
             builder.setTitle(title)
@@ -68,11 +76,22 @@ class TrackEditDialogFragment(
                     selectedItem
                 ){ _, which -> selectedItem = which }
 
+//                .setPositiveButton("OK")
+//                    { _,
+//                      _ -> listener.onDialogPositiveClick(this,
+//                        items[selectedItem], trackId)
+//                    }
+
                 .setPositiveButton("OK")
-                    { _,
-                      _ -> listener.onDialogPositiveClick(this,
-                        items[selectedItem], trackId)
+                { _,
+                  _ ->
+                    DialogItems.values().find { it.value == items[selectedItem]}?.let { it1 ->
+                        listener.onDialogOkClick(this,
+                            it1,
+                            trackId, idx)
                     }
+
+                }
 
                 .setNegativeButton("Cancel")
                     { _,
@@ -84,4 +103,12 @@ class TrackEditDialogFragment(
 
         } ?: throw IllegalStateException("Activity cannot be null")
     }
+}
+
+enum class DialogItems(val value: String) {
+    EDIT("Edit"),
+    DELETE("Delete"),
+    DELETE_FILE("Delete File"),
+    TO_FILE("Save as File"),
+    TO_DB("Save in DB")
 }

@@ -146,7 +146,7 @@ class FragmentOsmMap : Fragment() {
 
             binding.mapStaticBtnGps.alpha = 0.5f
             binding.mapStaticBtnGps.setOnClickListener {
-                this.onGpsButton(binding.mapStaticBtnGps)
+                this.onGpsButtonStatic(binding.mapStaticBtnGps)
             }
 
         } else {
@@ -156,7 +156,7 @@ class FragmentOsmMap : Fragment() {
             // button gps on/off
             binding.mapToolbarBtnGps.alpha = 0.5f
             binding.mapToolbarBtnGps.setOnClickListener {
-                this.onEditButton(binding.mapToolbarBtnGps)
+                this.onGpsButton(binding.mapToolbarBtnGps)
             }
 
             // button add point to path
@@ -179,6 +179,7 @@ class FragmentOsmMap : Fragment() {
             binding.mapToolbarBtnMovePoint.setOnClickListener {
                 this.onMovePointButton(binding.mapToolbarBtnMovePoint)
             }
+            binding.mapToolbarBtnMovePoint.visibility = View.GONE
 
             // button show path/track info
             binding.mapToolbarBtnInfo.setOnClickListener {
@@ -189,8 +190,8 @@ class FragmentOsmMap : Fragment() {
             // binding.mapToolbarBtnInfo.alpha = 0.5f
 
             // button add a waypoint item to path point
-            binding.mapToolbarBtnAddItem.alpha = 0.5f
-            binding.mapToolbarBtnAddItem.isEnabled = false
+//            binding.mapToolbarBtnAddItem.alpha = 0.5f
+//            binding.mapToolbarBtnAddItem.isEnabled = false
             binding.mapToolbarBtnAddItem.setOnClickListener {
                 this.onAddPathWayPoint()
             }
@@ -1071,6 +1072,7 @@ class FragmentOsmMap : Fragment() {
         }
 
         if (this.trackObject.trackSourceType == TrackSourceType.DATABASE && newMarkerSelected) {
+            this.map_toolbar_btn_movePoint.visibility = View.VISIBLE
             // show toolbar for selected marker
             if (this.map_toolbar_btn_movePoint.isEnabled && this.map_toolbar_btn_movePoint.alpha == 1.0f) {
                 this.map_toolbar_btn_addPoint.isEnabled = false
@@ -1180,7 +1182,7 @@ class FragmentOsmMap : Fragment() {
     /**
      * Toggles location service on and of?
      */
-    private fun onEditButton(btn: ImageButton) {
+    private fun onGpsButton(btn: ImageButton) {
         //btn.isEnabled = !btn.isEnabled
         if (btn.alpha == 0.5f) {
             btn.alpha = 1.0f
@@ -1373,7 +1375,7 @@ class FragmentOsmMap : Fragment() {
 
 
     /**
-     *
+     * Add / display a waypoint to last track point or selected track point
      *
      */
     private fun onAddPathWayPoint() {
@@ -1383,6 +1385,16 @@ class FragmentOsmMap : Fragment() {
 //        if (this.trackObject.wayPoints.indexOfFirst { it.pointId == this.trackObject.coords[this.selectedMarkersPathPosition.first()].id} == -1) {
 //            this.osmBottomSheet?.openOsmBottomSheet("WayPoint_New")
 //        }
+
+        if (this.selectedMarkersPathPosition.isEmpty()) {
+            val lastPoint = this.trackObject.coords.last().trackPosition.toLong()
+
+            if (this.trackObject.wayPoints.indexOfFirst { it.pointId == lastPoint } == -1 ) {
+                this.osmBottomSheet?.openOsmBottomSheet("WayPoint_New")
+            }
+
+            return
+        }
 
         val trackPosition = this.trackObject.coords[this.selectedMarkersPathPosition.first()].trackPosition.toLong()
         if (this.trackObject.wayPoints.indexOfFirst { it.pointId == trackPosition } == -1 ) {
@@ -1419,7 +1431,7 @@ class FragmentOsmMap : Fragment() {
      * Toggle display of current position.
      *
      */
-    private fun onGpsButton(btn: ImageButton) {
+    private fun onGpsButtonStatic(btn: ImageButton) {
         if (btn.alpha == 0.5f) {
             btn.alpha = 1.0f
             //this.pathEditEnabled = true

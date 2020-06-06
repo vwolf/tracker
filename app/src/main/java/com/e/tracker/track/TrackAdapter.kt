@@ -1,9 +1,11 @@
 package com.e.tracker.track
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.e.tracker.R
 import com.e.tracker.database.TrackModel
@@ -13,8 +15,7 @@ import com.e.tracker.databinding.TrackListItemViewBinding
 
 class TrackAdapter(
     private val clickListener: TrackListener,
-    private val editIconClickListener: (TrackModel) -> Unit) : RecyclerView.Adapter<TrackAdapter.ViewHolder>() {
-
+    private val editIconClickListener: (TrackModel, Int) -> Unit) : RecyclerView.Adapter<TrackAdapter.ViewHolder>() {
 
 
     var data = listOf<TrackModel>()
@@ -41,7 +42,9 @@ class TrackAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
 
-        fun bind(item: TrackModel, clickListener: TrackListener, editIconClickListener: (TrackModel) -> Unit) {
+        fun bind(item: TrackModel, clickListener: TrackListener, editIconClickListener: (TrackModel, Int) -> Unit) {
+            //this.layoutPosition
+
             binding.track = item
             itemView.findViewById<TextView>(R.id.track_list_name).text = item.trackName
             itemView.findViewById<TextView>(R.id.track_list_description).text = item.trackDescription
@@ -50,14 +53,20 @@ class TrackAdapter(
                 "biking" -> R.drawable.ic_directions_bike_black_24dp
                 else -> R.drawable.ic_directions_walk_black_24dp
             })
+            if (item.id < 1) {
+                itemView.setBackgroundColor(  ContextCompat.getColor(viewHolderContext, R.color.schema_one_blue_light) )
+            }
+
             binding.clickListener = clickListener
-            binding.editImage.setOnClickListener { editIconClickListener(item)}
+            binding.editImage.setOnClickListener { editIconClickListener(item, this.layoutPosition)}
             binding.executePendingBindings()
         }
 
         companion object {
+            private lateinit var viewHolderContext: Context
             fun from(parent: ViewGroup): ViewHolder {
                 val layoutInflater = LayoutInflater.from(parent.context)
+                viewHolderContext = parent.context
                 val binding = TrackListItemViewBinding.inflate(layoutInflater, parent, false)
                 return ViewHolder(binding)
             }

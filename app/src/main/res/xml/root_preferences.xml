@@ -26,6 +26,13 @@
             />
     </PreferenceCategory>
 
+    <PreferenceCategory app:title="Files">
+        <EditTextPreference
+            app:key="sdcard_directory"
+            app:title="Folder name with tracks (SdCard)"
+            app:defaultValue="MyTracks"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
 <!--    <PreferenceCategory app:title="@string/messages_header">-->
 
 <!--        <EditTextPreference-->

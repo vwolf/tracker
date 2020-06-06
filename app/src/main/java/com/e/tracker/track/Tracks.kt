@@ -4,48 +4,63 @@ import android.app.Application
 import android.content.Context
 import androidx.core.content.ContextCompat
 import android.os.Environment
+import android.os.Parcel
+import android.os.Parcelable
+import androidx.core.os.EnvironmentCompat
+import com.e.tracker.database.TrackModel
+import com.e.tracker.xml.gpx.domain.TrackSegment
+import com.google.gson.annotations.Expose
 import java.io.File
 
 /**
- * Access to tracks from external storage
+ * Collect's all tracks, db and files
+ *
  */
-class Tracks {
+class Tracks() : Parcelable {
 
-    fun getTracksFromExternalStorage(
-        context: Context,
-        showHiddenFiles: Boolean = false,
-        fileType: String = "gpx",
-        onlyFiles: Boolean = true ) : List<File> {
+    @Expose
+    var fileTracks = mutableListOf<Track>()
 
-        var filesList = mutableListOf<File>()
-        var fileList = mutableListOf<File>()
+    constructor(parcel: Parcel) : this (
+//        fileTracks = parcel.readArray()
+//        in.readTypedList(this.fileTracks, Track.CREATOR)
+    )
 
-        // get path's to external storage directoryies
-        val state = Environment.getExternalStorageState()
-        if( Environment.MEDIA_MOUNTED == state || Environment.MEDIA_MOUNTED_READ_ONLY == state ) {
-            val externalFilesDirs = ContextCompat.getExternalFilesDirs(context, null)
+    fun addFileTrack(path: String, trackModel: TrackModel) {
+        var newTrack = Track(TrackSourceType.FILE, trackModel)
+        newTrack.filePath = path
 
-            for ( path in externalFilesDirs) {
-                fileList.add(path)
-            }
-        }
-
-        // now walk each directory and get all files of fileType
-        if (fileList.isNotEmpty()) {
-
-            for ( dir in fileList ) {
-                val directory = dir
-
-                val filesInDirectory = directory.walk(FileWalkDirection.TOP_DOWN)
-                    .filter { showHiddenFiles || !it.name.startsWith(".")}
-                    .filter { onlyFiles && it.isFile }
-                    .filter { fileType.isNotEmpty() && it.extension.equals(fileType, ignoreCase = true)}
-                    .toList()
-
-                filesList.addAll(filesInDirectory)
-            }
-        }
-        return filesList
+        fileTracks.add(newTrack)
     }
 
+
+    fun addDbTrack(trackModel: TrackModel) {
+        var newTrack = Track(TrackSourceType.DATABASE, trackModel)
+    }
+
+    override fun writeToParcel(dest: Parcel?, flags: Int) {
+
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+    companion object {
+        @JvmField val CREATOR = object : Parcelable.Creator<Tracks> {
+            override fun createFromParcel(parcel: Parcel): Tracks = Tracks(parcel)
+            override fun newArray(size: Int) = arrayOfNulls<Tracks>(size)
+        }
+   }
 }
+
+/**
+ *
+ */
+class Track(val trackSourceType: TrackSourceType, val trackModel: TrackModel) {
+
+    // file track specific
+    var filePath: String? = null
+
+}
+
+

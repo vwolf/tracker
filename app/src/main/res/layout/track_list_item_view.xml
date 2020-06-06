@@ -18,7 +18,7 @@
         android:layout_height="wrap_content"
         android:background="@color/trackListItem_background"
         android:onClick="@{() -> clickListener.onClick(track)}"
-        android:paddingBottom="12dp">
+        android:paddingBottom="2dp">
 
         <ImageView
             android:id="@+id/type_image"

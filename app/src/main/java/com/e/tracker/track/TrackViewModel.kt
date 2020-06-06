@@ -37,7 +37,6 @@ class TrackViewModel (
     var tracks = database.getAllTracks()
     var mergedTracks = mutableListOf<TrackModel>()
 
-
     /**
      * Insert new track into table on .IO
      * 1. insert new track in TrackDatabase
@@ -130,6 +129,10 @@ class TrackViewModel (
 
     fun deleteTrackWithId(id: Long) {
         uiScope.launch { deleteTrack(id) }
+    }
+
+    fun deleteTrackFile(idx: Int) {
+
     }
 
 

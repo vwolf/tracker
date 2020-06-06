@@ -56,5 +56,9 @@ data class TrackModel (
     var startCoordinates: String = "startCoordinates",
 
     @ColumnInfo(name = "staticTrack")
-    var staticTrack: String = "staticTrack"
+    var staticTrack: String = "staticTrack",
+
+    // path if track is loaded from a file
+    @ColumnInfo(name = "filePath")
+    var filePath: String? = null
 )

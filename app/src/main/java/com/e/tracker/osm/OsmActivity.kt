@@ -510,7 +510,11 @@ class OsmActivity : AppCompatActivity(),
     override fun onSaveWaypoint(wayPointModel: TrackWayPointModel, dialog: OsmBottomSheet) {
         Log.i(OSM_LOG, "OsmActivity.onSaveWaypoint")
         wayPointModel.trackId = trackObject.id
-        wayPointModel.pointId = (mapFragment.selectedMarkersPathPosition.first() + 1).toLong()
+        if (mapFragment.selectedMarkersPathPosition.isNotEmpty()) {
+            wayPointModel.pointId = (mapFragment.selectedMarkersPathPosition.first() + 1).toLong()
+        } else {
+            wayPointModel.pointId = trackObject.id
+        }
 
         uiScope.launch {
             val res = trackObject.insertWayPoint(wayPointModel)
@@ -526,6 +530,7 @@ class OsmActivity : AppCompatActivity(),
         }
         //trackObject.addWayPoint(waypoint)
     }
+
 
     override fun onEditWaypoint(trackWayPointModel: TrackWayPointModel, dialog: OsmBottomSheet) {
         Log.i(OSM_LOG, "OsmActivity.onEditWaypoint")
